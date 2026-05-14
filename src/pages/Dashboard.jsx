@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import Logo from '../assets/LogoApoioPleno.png'
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -10,8 +11,11 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl font-bold text-blue-700 mb-4">Painel da ONG</h1>
+    <section className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div className="flex justify-center  mb-2">
+      <img className="w-32" src={Logo} alt="Logo ONG Apoio Pleno" />
+    </div>  
+      
       <p className="text-lg text-gray-700">Bem-vindo(a) ao sistema de gestão solidária!</p>
       
       <button 
@@ -20,7 +24,7 @@ function Dashboard() {
       >
         Sair do Sistema
       </button>
-    </div>
+    </section>
   );
 }
 
