@@ -1,4 +1,4 @@
-function Dashboard() {
+export default function Dashboard() {
   return (
     <div>
       <h1 className="text-3xl font-bold text-slate-800">Visão Geral</h1>
@@ -8,5 +8,3 @@ function Dashboard() {
     </div>
   );
 }
-
-export default Dashboard;

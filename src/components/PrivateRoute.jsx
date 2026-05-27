@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 
 // O "children" representa a tela que estamos tentando proteger (ex: Dashboard, Equipamentos)
-function PrivateRoute({ children }) {
+export default function PrivateRoute({ children }) {
   
   //O componente "olha" no navegador do usuário para ver se a chave 'ong_user' existe.
   const usuarioLogado = sessionStorage.getItem('ong_user');
@@ -15,4 +15,3 @@ function PrivateRoute({ children }) {
   return children;
 }
 
-export default PrivateRoute;

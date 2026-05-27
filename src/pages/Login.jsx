@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../assets/LogoApoioPleno.png'
 
-function Login() {
+export default function Login() {
   //Estados: Guardam o que o usuário digita no exato momento em que ele digita.
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -85,5 +85,3 @@ function Login() {
     </section>
   );
 }
-
-export default Login;
