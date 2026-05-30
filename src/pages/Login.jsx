@@ -44,7 +44,7 @@ export default function Login() {
   }
 
   return (
-    <section className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
         <div className="flex justify-center  mb-8">
           <img className="w-32" src={Logo} alt="Logo ONG Apoio Pleno" />
@@ -82,6 +82,6 @@ export default function Login() {
           </div>
         </form>
       </div>
-    </section>
+    </main>
   );
 }
