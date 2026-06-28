@@ -24,11 +24,13 @@ export default function Equipamentos() {
   // Implementação da busca na API
   const buscarDadosApi = async () => {
     try {
+      setEquipamentos([]); // <--- ADICIONE ISSO: Limpa a tabela temporariamente para forçar o re-render
       const resposta = await fetch(
-        "https://ong-apoio-pleno-api.onrender.com/api/equipamentos",
+        "https://ong-apoio-pleno-api.onrender.com/api/equipamentos?t=${Date.now()}",
       );
       const dados = await resposta.json();
-      setEquipamentos(dados);
+      console.log("DADOS QUE VIERAM DA API:", dados); // Veja se o item excluído AINDA ESTÁ NESSA LISTA
+      setEquipamentos([...dados]);
     } catch (error) {
       console.error("Erro ao buscar equipamentos:", error);
     }
@@ -100,7 +102,19 @@ export default function Equipamentos() {
                   <td className="p-4 font-medium">{item.nome}</td>
                   <td className="p-4">{item.categoria}</td>
                   <td className="p-4">{item.numero_serie}</td>
-                  <td className="p-4">{item.status}</td>
+                  <td className="p-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                        item.status === "Disponível"
+                          ? "bg-green-100 text-green-700"
+                          : item.status === "Em Manutenção"
+                            ? "bg-orange-100 text-orange-700"
+                            : "bg-blue-100 text-blue-700" // Cor para "Emprestado"
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  </td>
                   <td className="p-4 text-center">
                     <div className="flex justify-center gap-2">
                       <button

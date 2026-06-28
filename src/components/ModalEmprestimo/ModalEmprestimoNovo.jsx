@@ -1,42 +1,129 @@
-import React, { useState } from "react";
-import { FaXmark, FaHandshake } from "react-icons/fa6";
+import React, { useState, useEffect } from "react";
+import { FaXmark, FaHandHoldingHeart } from "react-icons/fa6";
 
-export default function ModalNovoEmprestimo({ isOpen, onClose, beneficiarios, equipamentosDisponiveis, atualizarLista }) {
-  const [form, setForm] = useState({ beneficiario_id: "", equipamento_id: "", previsao_devolucao: "" });
+export default function ModalNovoEmprestimo({
+  isOpen,
+  onClose,
+  atualizarLista,
+}) {
+  const [equipamentos, setEquipamentos] = useState([]);
+  const [beneficiarios, setBeneficiarios] = useState([]);
+  const [form, setForm] = useState({
+    equipamento_id: "",
+    beneficiario_id: "",
+    data_devolucao: "",
+  });
+  const [salvando, setSalvando] = useState(false);
+
+  // Busca listas ao abrir o modal
+  useEffect(() => {
+    if (isOpen) {
+      Promise.all([
+        fetch("https://ong-apoio-pleno-api.onrender.com/api/equipamentos").then(
+          (res) => res.json(),
+        ),
+        fetch(
+          "https://ong-apoio-pleno-api.onrender.com/api/beneficiarios",
+        ).then((res) => res.json()),
+      ]).then(([eq, ben]) => {
+        // Filtra apenas disponíveis
+        setEquipamentos(eq.filter((e) => e.status === "Disponível"));
+        setBeneficiarios(ben);
+      });
+    }
+  }, [isOpen]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSalvando(true);
+    try {
+      const res = await fetch(
+        "https://ong-apoio-pleno-api.onrender.com/api/emprestimos",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        },
+      );
+      if (res.ok) {
+        atualizarLista();
+        onClose();
+      }
+    } finally {
+      setSalvando(false);
+    }
+  };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <main role="dialog" aria-modal="true" className="bg-white rounded-2xl w-full max-w-lg shadow-xl">
-        <header className="bg-indigo-50 p-4 border-b border-indigo-100 flex justify-between">
-          <h2 className="text-xl font-bold text-indigo-800">Novo Empréstimo</h2>
-          <button onClick={onClose} className="text-indigo-400 hover:bg-indigo-200 rounded p-1"><FaXmark className="w-5 h-5" /></button>
+      <main
+        role="dialog"
+        className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        <header className="bg-slate-50 p-4 border-b flex justify-between items-center">
+          <h2 className="text-xl font-bold text-slate-800">Novo Empréstimo</h2>
+          <button onClick={onClose}>
+            <FaXmark />
+          </button>
         </header>
-        <form className="p-4 sm:p-6 space-y-4">
+        <form
+          id="form-emp"
+          onSubmit={handleSubmit}
+          className="p-6 space-y-4 overflow-y-auto"
+        >
           <div>
-            <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Equipamento Disponível</label>
-            <select required name="equipamento_id" className="w-full px-3 py-2.5 border rounded-lg text-sm bg-white">
-              <option value="">Selecione o equipamento...</option>
-              {equipamentosDisponiveis?.map(e => <option key={e.id} value={e.id}>{e.nome} (Série: {e.numero_serie})</option>)}
+            <label className="block text-xs font-bold uppercase">
+              Equipamento
+            </label>
+            <select
+              required
+              className="w-full p-3 border rounded-lg"
+              onChange={(e) =>
+                setForm({ ...form, equipamento_id: e.target.value })
+              }
+            >
+              <option value="">Selecione...</option>
+              {equipamentos.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.nome}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Beneficiário (Responsável)</label>
-            <select required name="beneficiario_id" className="w-full px-3 py-2.5 border rounded-lg text-sm bg-white">
-              <option value="">Selecione o responsável...</option>
-              {beneficiarios?.map(b => <option key={b.id} value={b.id}>{b.nome}</option>)}
+            <label className="block text-xs font-bold uppercase">
+              Responsável
+            </label>
+            <select
+              required
+              className="w-full p-3 border rounded-lg"
+              onChange={(e) =>
+                setForm({ ...form, beneficiario_id: e.target.value })
+              }
+            >
+              <option value="">Selecione...</option>
+              {beneficiarios.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.nome}
+                </option>
+              ))}
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Previsão de Devolução</label>
-            <input required type="date" name="previsao_devolucao" className="w-full px-3 py-2.5 border rounded-lg text-sm" />
-          </div>
-          <footer className="pt-4 flex justify-end gap-3 border-t">
-            <button type="button" onClick={onClose} className="px-4 py-2.5 border rounded-lg text-sm">Cancelar</button>
-            <button type="submit" className="px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-2"><FaHandshake /> Confirmar Empréstimo</button>
-          </footer>
         </form>
+        <footer className="p-4 border-t flex justify-end gap-3 bg-white">
+          <button onClick={onClose} className="px-4 py-2 border rounded-lg">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            form="form-emp"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+          >
+            Confirmar
+          </button>
+        </footer>
       </main>
     </div>
   );
