@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaXmark, FaFloppyDisk } from "react-icons/fa6";
 
-export default function ModalCadastro({
+export default function ModalCadastroBeneficiarios({
   isOpen,
   onClose,
   beneficiarios,
@@ -73,7 +73,7 @@ export default function ModalCadastro({
       return; // Interrompe o fluxo se for duplicado
     }
 
-    // O bloco try/catch agora está fora do IF!
+    
     try {
       // Como tem foto física, precisamos usar FormData em vez de JSON comum
       const formData = new FormData();
