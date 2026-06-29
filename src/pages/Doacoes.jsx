@@ -13,13 +13,9 @@ import {
 
 export default function Doacoes() {
   const [doacoes, setDoacoes] = useState([]);
-
-  // Estados para os 3 modais
   const [modalNovaAberto, setModalNovaAberto] = useState(false);
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
   const [modalEstornoAberto, setModalEstornoAberto] = useState(false);
-
-  // Estado para armazenar o item selecionado
   const [doacaoSelecionada, setDoacaoSelecionada] = useState(null);
 
   const buscarDoacoes = async () => {
@@ -38,7 +34,6 @@ export default function Doacoes() {
     buscarDoacoes();
   }, []);
 
-  // Handlers para abrir modais com dados
   const abrirEdicao = (doacao) => {
     setDoacaoSelecionada(doacao);
     setModalEdicaoAberto(true);
@@ -52,31 +47,34 @@ export default function Doacoes() {
   return (
     <main
       role="main"
-      className="space-y-8 animate-fade-in p-4 sm:p-0"
-      aria-label="Página de Doações"
+      className="space-y-8 animate-fade-in p-4 sm:p-6"
+      aria-labelledby="pagina-doacoes"
     >
-      {/* CABEÇALHO RESPONSIVO */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2">
-          <FaHandHoldingDollar className="text-green-600" aria-hidden="true" />
-          <span>Gestão de Doações</span>
-        </h1>
+        <div>
+          <h1
+            id="pagina-doacoes"
+            className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2"
+          >
+            <FaHandHoldingDollar className="text-blue-600" aria-hidden="true" />
+            <span>Gestão de Doações</span>
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Gerenciamento de doações recebidas.
+          </p>
+        </div>
         <button
           onClick={() => setModalNovaAberto(true)}
-          className="w-full sm:w-auto bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-green-700 transition flex items-center justify-center gap-2 shadow-sm"
+          className="w-full sm:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-sm"
         >
           <FaPlus aria-hidden="true" /> Nova Doação
         </button>
       </header>
 
-      {/* TABELA RESPONSIVA */}
-      <section
-        className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-        aria-label="Tabela de doações"
-      >
-        <div className="w-full overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[600px]">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase">
+      <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="w-full">
+          <table className="w-full text-left border-collapse">
+            <thead className="hidden sm:table-header-group bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase">
               <tr>
                 <th className="p-4">Doador</th>
                 <th className="p-4">Data</th>
@@ -84,30 +82,54 @@ export default function Doacoes() {
                 <th className="p-4 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
+            <tbody className="divide-y divide-slate-200">
               {doacoes.map((item) => (
                 <tr
                   key={item.id}
-                  className="hover:bg-slate-50 transition-colors"
+                  className="flex flex-col sm:table-row p-4 border-b sm:border-b-0 hover:bg-slate-50 transition-colors"
                 >
-                  <td className="p-4 font-medium">{item.doador_nome}</td>
-                  <td className="p-4">{item.data_doacao}</td>
-                  <td className="p-4">{item.descricao}</td>
-                  <td className="p-4 text-center">
-                    <div className="flex justify-center gap-2">
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                      Doador:
+                    </span>
+                    <span className="text-xs sm:text-sm font-medium text-slate-900">
+                      {item.doador}
+                    </span>
+                  </td>
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                      Data:
+                    </span>
+                    <span className="text-xs sm:text-sm text-slate-700">
+                      {item.data_doacao}
+                    </span>
+                  </td>
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                      Desc:
+                    </span>
+                    <span className="text-xs sm:text-sm text-slate-700">
+                      {item.descricao}
+                    </span>
+                  </td>
+                  <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden">
+                      Ações:
+                    </span>
+                    <div className="flex gap-4">
                       <button
                         onClick={() => abrirEdicao(item)}
-                        className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50"
-                        aria-label={`Editar doação de ${item.doador_nome}`}
+                        className="text-blue-600 hover:text-blue-800 p-1 transition"
+                        title="Editar"
                       >
-                        <FaPen />
+                        <FaPen size={18} />
                       </button>
                       <button
                         onClick={() => abrirEstorno(item)}
-                        className="text-amber-600 hover:text-amber-800 p-2 rounded-full hover:bg-amber-50"
-                        aria-label={`Estornar doação de ${item.doador_nome}`}
+                        className="text-amber-600 hover:text-amber-800 p-1 transition"
+                        title="Estornar"
                       >
-                        <FaRotateLeft />
+                        <FaRotateLeft size={18} />
                       </button>
                     </div>
                   </td>
@@ -118,13 +140,11 @@ export default function Doacoes() {
         </div>
       </section>
 
-      {/* MODAIS */}
       <ModalNova
         isOpen={modalNovaAberto}
         onClose={() => setModalNovaAberto(false)}
         atualizarLista={buscarDoacoes}
       />
-
       <ModalEdicao
         isOpen={modalEdicaoAberto}
         onClose={() => {
@@ -134,7 +154,6 @@ export default function Doacoes() {
         doacao={doacaoSelecionada}
         atualizarLista={buscarDoacoes}
       />
-
       <ModalEstorno
         isOpen={modalEstornoAberto}
         onClose={() => {

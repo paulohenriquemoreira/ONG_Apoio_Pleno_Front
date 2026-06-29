@@ -21,16 +21,13 @@ export default function Equipamentos() {
   const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
   const [equipamentoSelecionado, setEquipamentoSelecionado] = useState(null);
 
-  // Implementação da busca na API
   const buscarDadosApi = async () => {
     try {
-      setEquipamentos([]); // <--- ADICIONE ISSO: Limpa a tabela temporariamente para forçar o re-render
       const resposta = await fetch(
-        "https://ong-apoio-pleno-api.onrender.com/api/equipamentos?t=${Date.now()}",
+        "https://ong-apoio-pleno-api.onrender.com/api/equipamentos",
       );
       const dados = await resposta.json();
-      console.log("DADOS QUE VIERAM DA API:", dados); // Veja se o item excluído AINDA ESTÁ NESSA LISTA
-      setEquipamentos([...dados]);
+      setEquipamentos(dados);
     } catch (error) {
       console.error("Erro ao buscar equipamentos:", error);
     }
@@ -58,7 +55,7 @@ export default function Equipamentos() {
   return (
     <main
       role="main"
-      className="space-y-8 p-4 sm:p-0 animate-fade-in"
+      className="space-y-8 animate-fade-in p-4 sm:p-6"
       aria-labelledby="titulo-equipamentos"
     >
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -73,18 +70,14 @@ export default function Equipamentos() {
           onClick={() => setModalCadastroAberto(true)}
           className="w-full sm:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-sm"
         >
-          <FaPlus aria-hidden="true" /> Adicionar
+          <FaPlus aria-hidden="true" /> Novo Equipamento
         </button>
       </header>
 
-      {/* Tabela de Equipamentos */}
-      <section
-        className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-        aria-label="Lista de equipamentos"
-      >
-        <div className="w-full overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[700px]">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase">
+      <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="w-full">
+          <table className="w-full text-left border-collapse">
+            <thead className="hidden sm:table-header-group bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase">
               <tr>
                 <th className="p-4">Nome</th>
                 <th className="p-4">Categoria</th>
@@ -93,50 +86,86 @@ export default function Equipamentos() {
                 <th className="p-4 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
+            <tbody className="divide-y divide-slate-200">
               {equipamentos.map((item) => (
                 <tr
                   key={item.id}
-                  className="hover:bg-slate-50 transition-colors"
+                  className="flex flex-col sm:table-row p-4 border-b sm:border-b-0 hover:bg-slate-50 transition-colors"
                 >
-                  <td className="p-4 font-medium">{item.nome}</td>
-                  <td className="p-4">{item.categoria}</td>
-                  <td className="p-4">{item.numero_serie}</td>
-                  <td className="p-4">
+                  {/* Nome */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                      Nome:
+                    </span>
+                    <span className="text-xs sm:text-sm font-medium text-slate-900">
+                      {item.nome}
+                    </span>
+                  </td>
+
+                  {/* Categoria */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                      Categoria:
+                    </span>
+                    <span className="text-xs sm:text-sm text-slate-700">
+                      {item.categoria}
+                    </span>
+                  </td>
+
+                  {/* Série */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                      Série:
+                    </span>
+                    <span className="text-xs sm:text-sm text-slate-700">
+                      {item.numero_serie || "N/A"}
+                    </span>
+                  </td>
+
+                  {/* Status */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                      Status:
+                    </span>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                      className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase inline-block ${
                         item.status === "Disponível"
                           ? "bg-green-100 text-green-700"
-                          : item.status === "Em Manutenção"
+                          : item.status === "Em manutenção"
                             ? "bg-orange-100 text-orange-700"
-                            : "bg-blue-100 text-blue-700" // Cor para "Emprestado"
+                            : "bg-blue-100 text-blue-700"
                       }`}
                     >
                       {item.status}
                     </span>
                   </td>
-                  <td className="p-4 text-center">
-                    <div className="flex justify-center gap-2">
+
+                  {/* Ações */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden">
+                      Ações:
+                    </span>
+                    <div className="flex gap-4">
                       <button
                         onClick={() => abrirManutencao(item)}
-                        className="text-orange-500 hover:text-orange-700 p-2"
-                        aria-label={`Manutenção ${item.nome}`}
+                        className="text-orange-500 hover:text-orange-700 transition p-1"
+                        title="Manutenção"
                       >
-                        <FaScrewdriverWrench />
+                        <FaScrewdriverWrench size={18} />
                       </button>
                       <button
                         onClick={() => abrirEdicao(item)}
-                        className="text-blue-600 hover:text-blue-800 p-2"
-                        aria-label={`Editar ${item.nome}`}
+                        className="text-blue-600 hover:text-blue-800 transition p-1"
+                        title="Editar"
                       >
-                        <FaPen />
+                        <FaPen size={18} />
                       </button>
                       <button
                         onClick={() => abrirExclusao(item)}
-                        className="text-red-600 hover:text-red-800 p-2"
-                        aria-label={`Excluir ${item.nome}`}
+                        className="text-red-600 hover:text-red-800 transition p-1"
+                        title="Excluir"
                       >
-                        <FaRegTrashCan />
+                        <FaRegTrashCan size={18} />
                       </button>
                     </div>
                   </td>
@@ -147,7 +176,6 @@ export default function Equipamentos() {
         </div>
       </section>
 
-      {/* Modais */}
       <ModalCadastro
         isOpen={modalCadastroAberto}
         onClose={() => setModalCadastroAberto(false)}

@@ -18,7 +18,6 @@ export default function Emprestimos() {
   const [modalRenovacaoAberto, setModalRenovacaoAberto] = useState(false);
   const [emprestimoSelecionado, setEmprestimoSelecionado] = useState(null);
 
-  // Busca dados da API
   const buscarEmprestimos = async () => {
     try {
       const resposta = await fetch(
@@ -48,32 +47,31 @@ export default function Emprestimos() {
   return (
     <main
       role="main"
-      className="space-y-8 animate-fade-in p-4 sm:p-0"
-      aria-labelledby="titulo-emprestimos"
+      className="space-y-8 animate-fade-in p-4 sm:p-6"
+      aria-labelledby="pagina-emprestimos"
     >
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1
-          id="titulo-emprestimos"
-          className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2"
-        >
-          <FaHandshake className="text-indigo-600" aria-hidden="true" />
-          <span>Gestão de Empréstimos</span>
-        </h1>
+        <div>
+          <h1
+            id="pagina-emprestimos"
+            className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2"
+          >
+            <FaHandshake className="text-blue-600" aria-hidden="true" />
+            <span>Gestão de Empréstimos</span>
+          </h1>
+        </div>
         <button
           onClick={() => setModalNovoAberto(true)}
-          className="w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-sm"
+          className="w-full sm:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2"
         >
           <FaPlus aria-hidden="true" /> Novo Empréstimo
         </button>
       </header>
 
-      <section
-        className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-        aria-label="Tabela de empréstimos ativos"
-      >
-        <div className="w-full overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase">
+      <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="w-full">
+          <table className="w-full text-left border-collapse">
+            <thead className="hidden sm:table-header-group bg-slate-50 border-b text-xs font-bold uppercase text-slate-600">
               <tr>
                 <th className="p-4">Beneficiário</th>
                 <th className="p-4">Equipamento</th>
@@ -82,31 +80,72 @@ export default function Emprestimos() {
                 <th className="p-4 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
+
+            <tbody className="divide-y divide-slate-200">
               {emprestimos.map((item) => (
                 <tr
                   key={item.id}
-                  className="hover:bg-slate-50 transition-colors"
+                  className="flex flex-col sm:table-row p-4 border-b sm:border-b-0 hover:bg-slate-50 transition-colors"
                 >
-                  <td className="p-4 font-medium">{item.beneficiario_nome}</td>
-                  <td className="p-4">{item.equipamento_nome}</td>
-                  <td className="p-4">{item.data_inicio}</td>
-                  <td className="p-4">{item.previsao_devolucao}</td>
-                  <td className="p-4 text-center">
-                    <div className="flex justify-center gap-2">
+                  {/* Beneficiário */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
+                      Beneficiário:
+                    </span>
+                    <span className="text-xs sm:text-sm font-medium text-slate-900">
+                      {item.beneficiario_nome}
+                    </span>
+                  </td>
+
+                  {/* Equipamento */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
+                      Equipamento:
+                    </span>
+                    <span className="text-xs sm:text-sm text-slate-700">
+                      {item.equipamento_nome}
+                    </span>
+                  </td>
+
+                  {/* Data Empréstimo */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
+                      Data Empr.:
+                    </span>
+                    <span className="text-xs sm:text-sm text-slate-700">
+                      {item.data_inicio}
+                    </span>
+                  </td>
+
+                  {/* Previsão Devolução */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
+                      Devolução:
+                    </span>
+                    <span className="text-xs sm:text-sm text-slate-700">
+                      {item.previsao_devolucao}
+                    </span>
+                  </td>
+
+                  {/* Ações */}
+                  <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-24 sm:hidden">
+                      Ações:
+                    </span>
+                    <div className="flex gap-4">
                       <button
                         onClick={() => abrirRenovacao(item)}
-                        className="text-indigo-600 hover:text-indigo-800 p-2"
-                        aria-label={`Renovar empréstimo de ${item.beneficiario_nome}`}
+                        className="text-indigo-600 hover:text-indigo-800 transition p-1"
+                        title="Renovar"
                       >
-                        <FaCalendarDays />
+                        <FaCalendarDays size={18} />
                       </button>
                       <button
                         onClick={() => abrirDevolucao(item)}
-                        className="text-teal-600 hover:text-teal-800 p-2"
-                        aria-label={`Registrar devolução de ${item.equipamento_nome}`}
+                        className="text-teal-600 hover:text-teal-800 transition p-1"
+                        title="Devolver"
                       >
-                        <FaCheckDouble />
+                        <FaCheckDouble size={18} />
                       </button>
                     </div>
                   </td>

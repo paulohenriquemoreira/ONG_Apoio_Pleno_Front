@@ -41,67 +41,106 @@ export default function Entregas() {
   return (
     <main
       role="main"
-      className="space-y-8 p-4 sm:p-0 animate-fade-in"
+      className="space-y-8 animate-fade-in p-4 sm:p-6"
       aria-labelledby="titulo-entregas"
     >
-      <header className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1
-          id="titulo-entregas"
-          className="text-2xl font-bold flex items-center gap-2 text-slate-800"
-        >
-          <FaBoxOpen className="text-blue-600" aria-hidden="true" /> Entregas
-        </h1>
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1
+            id="titulo-entregas"
+            className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2"
+          >
+            <FaBoxOpen className="text-blue-600" aria-hidden="true" />
+            <span>Gestão de Entregas</span>
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Gerenciamento de entregas de itens.
+          </p>
+        </div>
         <button
           onClick={() => setModalNovaAberto(true)}
-          className="w-full sm:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition"
+          className="w-full sm:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-sm"
         >
           <FaPlus aria-hidden="true" /> Nova Entrega
         </button>
       </header>
 
-      <section
-        className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-        aria-label="Tabela de entregas"
-      >
-        <div className="w-full overflow-x-auto">
-          <table className="w-full text-left min-w-[600px] border-collapse">
-            <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase">
-              <tr>
-                <th className="p-4">Data</th>
-                <th className="p-4">Beneficiário</th>
-                <th className="p-4">Itens</th>
-                <th className="p-4 text-center">Ações</th>
+      <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead className="hidden sm:table-header-group bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase">
+            <tr>
+              <th className="p-4">Data</th>
+              <th className="p-4">Beneficiário</th>
+              <th className="p-4">Itens</th>
+              {/* O alinhamento das ações agora força centralização no desktop */}
+              <th className="p-4 text-center">Ações</th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-slate-200">
+            {entregas.map((e) => (
+              <tr
+                key={e.id}
+                className="flex flex-col sm:table-row p-4 border-b sm:border-b-0 hover:bg-slate-50 transition-colors"
+              >
+                {/* Data */}
+                <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-center justify-between sm:justify-start">
+                  <span className="font-bold text-[12px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
+                    Data:
+                  </span>
+                  <span className="text-xs sm:text-sm text-slate-700">
+                    {e.data_entrega}
+                  </span>
+                </td>
+
+                {/* Beneficiário */}
+                <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-center justify-between sm:justify-start">
+                  <span className="font-bold text-[12px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
+                    Beneficiário:
+                  </span>
+                  <span className="text-xs sm:text-sm font-medium text-slate-900">
+                    {e.beneficiario_nome}
+                  </span>
+                </td>
+
+                {/* Itens */}
+                <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-center justify-between sm:justify-start">
+                  <span className="font-bold text-[12px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
+                    Itens:
+                  </span>
+                  <span className=" text-slate-700 ">
+                    {e.itens_quantidade} itens
+                  </span>
+                </td>
+
+                {/* Ações: Ajustado para alinhar no centro (desktop) e à direita (mobile) */}
+                <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center justify-between sm:justify-center">
+                  <span className="font-bold text-[12px] text-slate-400 uppercase w-24 sm:hidden">
+                    Ações:
+                  </span>
+
+                  {/* Adicionamos a classe flex-1 e justify-center aqui */}
+                  <div className="flex gap-4 justify-end sm:justify-center w-full">
+                    <button
+                      onClick={() => abrirDetalhes(e)}
+                      className="text-blue-600 hover:text-blue-800 transition p-1"
+                      title="Detalhes"
+                    >
+                      <FaCircleInfo size={18} />
+                    </button>
+                    <button
+                      onClick={() => abrirCancelamento(e)}
+                      className="text-red-600 hover:text-red-800 transition p-1"
+                      title="Cancelar"
+                    >
+                      <FaBan size={18} />
+                    </button>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
-              {entregas.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50">
-                  <td className="p-4">{e.data_entrega}</td>
-                  <td className="p-4">{e.beneficiario_nome}</td>
-                  <td className="p-4">{e.itens_quantidade} itens</td>
-                  <td className="p-4 text-center">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => abrirDetalhes(e)}
-                        className="text-blue-600 hover:text-blue-800 p-2"
-                        aria-label={`Ver detalhes da entrega para ${e.beneficiario_nome}`}
-                      >
-                        <FaCircleInfo />
-                      </button>
-                      <button
-                        onClick={() => abrirCancelamento(e)}
-                        className="text-red-600 hover:text-red-800 p-2"
-                        aria-label={`Cancelar entrega para ${e.beneficiario_nome}`}
-                      >
-                        <FaBan />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </section>
 
       {/* Modais */}

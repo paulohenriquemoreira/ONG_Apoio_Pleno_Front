@@ -62,7 +62,7 @@ export default function Layout() {
       {/* OVERLAY MOBILE: Fundo escuro quando o menu abre no celular */}
       {menuAberto && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={fecharMenu}
         ></div>
       )}
@@ -70,7 +70,7 @@ export default function Layout() {
       {/* ASIDE: Menu Lateral*/}
       <aside
         aria-label="Menu lateral principal"
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1e293b] text-slate-300 flex flex-col justify-between transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1e293b] text-slate-300 flex flex-col justify-between transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
           menuAberto ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -102,13 +102,15 @@ export default function Layout() {
                         : "text-slate-400 hover:bg-slate-800 hover:text-white" // SE FALSO: Cinza e sem fundo
                     }`}
                   >
-                    <item.icon
-                      className={`text-xl transition-colors ${
-                        isAtivo
-                          ? "text-blue-400"
-                          : "text-slate-400 group-hover:text-blue-500"
-                      }`}
-                    />
+                    <div className="w-6 flex justify-center items-center">
+                      <item.icon
+                        className={`text-xl transition-colors ${
+                          isAtivo
+                            ? "text-blue-400"
+                            : "text-slate-400 group-hover:text-blue-500"
+                        }`}
+                      />
+                    </div>
 
                     {/* flex-1 empurra o que vier depois (o selo) lá para o canto direito! */}
                     <span className="font-medium text-lg flex-1">
@@ -174,7 +176,7 @@ export default function Layout() {
                   type="button"
                   aria-label="Abrir menu lateral"
                   aria-expanded={menuAberto}
-                  className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg text-xl"
+                  className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg text-xl"
                   onClick={() => setMenuAberto(true)}
                 >
                   <FaBars aria-hidden="true" />
@@ -208,7 +210,7 @@ export default function Layout() {
                 <button
                   type="button"
                   aria-label="Abrir menu do usuário"
-                  className=" flex items-center gap-3 p-2 rounded-lg transition-colors" 
+                  className=" flex items-center gap-3 p-2 rounded-lg transition-colors"
                 >
                   <div className="w-10 h-10 rounded-full bg-blue-600 hover:bg-sky-700 cursor-pointer text-white flex items-center justify-center text-lg">
                     <FaUser aria-hidden="true" />

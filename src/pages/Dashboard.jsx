@@ -83,14 +83,16 @@ export default function Dashboard() {
   ];
 
   return (
-    <main
+     <main
       role="main"
-      className="space-y-8 animate-fade-in p-4 sm:p-0"
-      aria-label="Dashboard Principal"
+      className="space-y-8 animate-fade-in p-4 sm:p-6"
+      aria-labelledby="pagina-dashboard"
     >
       {/* CABEÇALHO */}
       <header>
-        <h1 className="text-3xl font-bold text-slate-800">Visão Geral</h1>
+        <h1
+        id="pagina-dashboard"
+        className="text-3xl font-bold text-slate-800">Visão Geral</h1>
         <p className="text-slate-500 mt-1">
           Painel de controle da ONG Apoio Pleno.
         </p>
