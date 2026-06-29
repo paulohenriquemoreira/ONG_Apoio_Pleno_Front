@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import {
   FaWheelchairMove,
   FaPlus,
@@ -21,21 +22,34 @@ export default function Equipamentos() {
   const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
   const [equipamentoSelecionado, setEquipamentoSelecionado] = useState(null);
 
+  // Assimila a propriedade capturada externamente estabelecendo a filtragem responsiva.
+  const [termoBusca] = useOutletContext();
+
+  // Aciona um linkamento assíncrono para colher os parâmetros consolidados presentes na tabela real remota.
   const buscarDadosApi = async () => {
     try {
       const resposta = await fetch(
         "https://ong-apoio-pleno-api.onrender.com/api/equipamentos",
       );
       const dados = await resposta.json();
-      setEquipamentos(dados);
+      setEquipamentos(Array.isArray(dados) ? dados : []);
     } catch (error) {
       console.error("Erro ao buscar equipamentos:", error);
+      setEquipamentos([]);
     }
   };
 
   useEffect(() => {
     buscarDadosApi();
   }, []);
+
+  // Extrai simultaneamente as informações coincidentes unindo os termos atrelados à pesquisa.
+  const equipamentosFiltrados = equipamentos.filter((item) => {
+    const termo = termoBusca ? termoBusca.toLowerCase() : "";
+    const nome = item.nome ? item.nome.toLowerCase() : "";
+    const categoria = item.categoria ? item.categoria.toLowerCase() : "";
+    return nome.includes(termo) || categoria.includes(termo);
+  });
 
   const abrirEdicao = (equipamento) => {
     setEquipamentoSelecionado(equipamento);
@@ -87,44 +101,38 @@ export default function Equipamentos() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {equipamentos.map((item) => (
+              {/* Disponibiliza o escopo formatado de visualização contínua atrelada ao rastreio dinâmico processado. */}
+              {equipamentosFiltrados.map((item) => (
                 <tr
                   key={item.id}
                   className="flex flex-col sm:table-row p-4 border-b sm:border-b-0 hover:bg-slate-50 transition-colors"
                 >
-                  {/* Nome */}
                   <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden">
                       Nome:
                     </span>
                     <span className="text-xs sm:text-sm font-medium text-slate-900">
                       {item.nome}
                     </span>
                   </td>
-
-                  {/* Categoria */}
                   <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden">
                       Categoria:
                     </span>
                     <span className="text-xs sm:text-sm text-slate-700">
                       {item.categoria}
                     </span>
                   </td>
-
-                  {/* Série */}
                   <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden">
                       Série:
                     </span>
                     <span className="text-xs sm:text-sm text-slate-700">
                       {item.numero_serie || "N/A"}
                     </span>
                   </td>
-
-                  {/* Status */}
                   <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
+                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden">
                       Status:
                     </span>
                     <span
@@ -139,12 +147,7 @@ export default function Equipamentos() {
                       {item.status}
                     </span>
                   </td>
-
-                  {/* Ações */}
-                  <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden">
-                      Ações:
-                    </span>
+                  <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center justify-center">
                     <div className="flex gap-4">
                       <button
                         onClick={() => abrirManutencao(item)}

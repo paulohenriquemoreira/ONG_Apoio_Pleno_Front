@@ -1,25 +1,25 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import {
   FaUserGroup,
   FaWheelchairMove,
   FaBox,
   FaWrench,
+  FaTriangleExclamation,
   FaBasketShopping,
   FaShirt,
 } from "react-icons/fa6";
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
+  Tooltip,
   BarChart,
   Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from "recharts";
 
 export default function Dashboard() {
@@ -30,43 +30,50 @@ export default function Dashboard() {
       estoque_disponivel: 0,
       manutencao: 0,
     },
+    mais_requisitados: [],
     suprimentos: {
       cestas: { recebidas: 0, doadas: 0 },
       roupas: { recebidas: 0, doadas: 0 },
     },
   });
+  const [alertaBeneficiarios, setAlertaBeneficiarios] = useState([]);
+  const [termoBusca] = useOutletContext();
 
+  // Executa rotinas preparatórias e acumula respostas processadas ativando matrizes consolidadas primárias.
   useEffect(() => {
-    const buscarDadosApi = async () => {
+    const buscarDados = async () => {
       try {
-        const resposta = await fetch(
+        const resResumo = await fetch(
           "https://ong-apoio-pleno-api.onrender.com/api/dashboard",
         );
-        const dados = await resposta.json();
+        const dados = await resResumo.json();
         setResumo(dados);
+
+        const resEmp = await fetch(
+          "https://ong-apoio-pleno-api.onrender.com/api/emprestimos",
+        );
+        const todosEmprestimos = await resEmp.json();
+
+        const hoje = new Date();
+        setAlertaBeneficiarios(
+          todosEmprestimos.filter((emp) => {
+            if (emp.status !== "Ativo") return false;
+            return (
+              (hoje - new Date(emp.data_inicio)) / (1000 * 60 * 60 * 24) > 30
+            );
+          }),
+        );
       } catch (erro) {
         console.error("Erro ao buscar dados:", erro);
       }
     };
-    buscarDadosApi();
+    buscarDados();
   }, []);
 
-  const dadosFluxo = [
-    { name: "Jan", recebidas: 110, entregues: 50 },
-    { name: "Fev", recebidas: 140, entregues: 70 },
-    { name: "Mar", recebidas: 180, entregues: 100 },
-    { name: "Abr", recebidas: 160, entregues: 80 },
-    { name: "Mai", recebidas: 220, entregues: 130 },
-    { name: "Jun", recebidas: 180, entregues: 110 },
-  ];
-
-  const dadosRequisitados = [
-    { name: "Cadeira de Rodas", quantidade: 98 },
-    { name: "Muletas", quantidade: 76 },
-    { name: "Cama Hospitalar", quantidade: 54 },
-    { name: "Andador", quantidade: 41 },
-    { name: "Bengala", quantidade: 29 },
-  ];
+  // Extrai as frações identificadas repassando elementos específicos dependentes em formato limpo.
+  const alertasFiltrados = alertaBeneficiarios.filter((b) =>
+    b.beneficiario_nome.toLowerCase().includes(termoBusca.toLowerCase()),
+  );
 
   const dadosEstoque = [
     {
@@ -83,26 +90,31 @@ export default function Dashboard() {
   ];
 
   return (
-     <main
-      role="main"
-      className="space-y-8 animate-fade-in p-4 sm:p-6"
-      aria-labelledby="pagina-dashboard"
-    >
-      {/* CABEÇALHO */}
+    <main role="main" className="space-y-8 animate-fade-in p-4 sm:p-6">
       <header>
-        <h1
-        id="pagina-dashboard"
-        className="text-3xl font-bold text-slate-800">Visão Geral</h1>
-        <p className="text-slate-500 mt-1">
-          Painel de controle da ONG Apoio Pleno.
-        </p>
+        <h1 className="text-3xl font-bold text-slate-800">Dashboard</h1>
+        <p className="text-slate-500">Visão geral da operação da ONG</p>
       </header>
 
-      {/* KPIS */}
-      <section
-        aria-label="Indicadores Principais"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-      >
+      {/* Condiciona visualmente relatórios provindos dos cálculos passados se as respostas acusarem retornos. */}
+      {alertasFiltrados.length > 0 && (
+        <section className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm">
+          <div className="flex items-center gap-3 text-amber-800 font-bold mb-2">
+            <FaTriangleExclamation />{" "}
+            <h2>Atenção: Acompanhamento Necessário</h2>
+          </div>
+          <ul className="list-disc list-inside text-sm text-amber-800">
+            {alertasFiltrados.map((b) => (
+              <li key={b.id}>
+                {b.beneficiario_nome} - {b.equipamento_nome}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Acopla e disponibiliza os resumos atrelados baseados no repasse constante do front-end contínuo. */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
             label: "Famílias",
@@ -131,7 +143,7 @@ export default function Dashboard() {
         ].map((kpi, idx) => (
           <article
             key={idx}
-            className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4"
+            className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm"
           >
             <div
               className={`text-2xl text-${kpi.color}-600 bg-${kpi.color}-100 p-3 rounded-lg`}
@@ -148,39 +160,11 @@ export default function Dashboard() {
         ))}
       </section>
 
-      {/* GRÁFICOS */}
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <h2 className="font-bold text-slate-800">Fluxo da Solidariedade</h2>
-        <div className="h-64 w-full mt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dadosFluxo}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Area
-                type="monotone"
-                dataKey="recebidas"
-                stroke="#22c55e"
-                fill="#22c55e"
-                fillOpacity={0.2}
-              />
-              <Area
-                type="monotone"
-                dataKey="entregues"
-                stroke="#3b82f6"
-                fill="#3b82f6"
-                fillOpacity={0.2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </section>
-
+      {/* Estabelece molduras visuais de medição fracionadas garantindo espaço de renderização condicional externa. */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm">
           <h2 className="font-bold text-slate-800 mb-4">Saúde do Estoque</h2>
-          <div className="h-52">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -199,24 +183,61 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h2 className="font-bold text-slate-800 mb-4">Mais Requisitados</h2>
-          <div className="h-52">
+        <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm">
+          <h2 className="font-bold text-slate-800 mb-4">
+            Equipamentos Mais Requisitados
+          </h2>
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dadosRequisitados} layout="vertical">
+              <BarChart data={resumo.mais_requisitados} layout="vertical">
                 <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip />
-                <Bar
-                  dataKey="quantidade"
-                  fill="#3b82f6"
-                  radius={[0, 4, 4, 0]}
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  width={100}
+                  tick={{ fontSize: 12 }}
                 />
+                <Tooltip />
+                <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </section>
       </div>
+
+      <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm">
+        <h2 className="font-bold text-slate-800 mb-4">Resumo de Suprimentos</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex items-center gap-4 border p-4 rounded-lg">
+            <FaBasketShopping className="text-3xl text-emerald-600" />
+            <div>
+              <p className="font-bold">Cestas Básicas</p>
+              <div className="flex gap-4 text-sm">
+                <span className="text-emerald-600">
+                  Recebidas: {resumo.suprimentos.cestas.recebidas}
+                </span>
+                <span className="text-blue-600">
+                  Doadas: {resumo.suprimentos.cestas.doadas}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 border p-4 rounded-lg">
+            <FaShirt className="text-3xl text-emerald-600" />
+            <div>
+              <p className="font-bold">Roupas</p>
+              <div className="flex gap-4 text-sm">
+                <span className="text-emerald-600">
+                  Recebidas: {resumo.suprimentos.roupas.recebidas}
+                </span>
+                <span className="text-blue-600">
+                  Doadas: {resumo.suprimentos.roupas.doadas}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

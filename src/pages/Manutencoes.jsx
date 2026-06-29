@@ -1,11 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  FaScrewdriverWrench,
-  FaCheck,
-  FaRotateLeft,
-  FaPen,
-  FaRegTrashCan,
-} from "react-icons/fa6";
+import { useOutletContext } from "react-router-dom";
+import { FaScrewdriverWrench, FaCheck, FaRotateLeft } from "react-icons/fa6";
 import {
   ModalDevolucao,
   ModalManutencaoFinalizar,
@@ -17,13 +12,17 @@ export default function Manutencao() {
   const [modalDevolucaoAberto, setModalDevolucaoAberto] = useState(false);
   const [equipamentoSelecionado, setEquipamentoSelecionado] = useState(null);
 
+  // Assimila a propriedade capturada externamente via roteamento central.
+  const [termoBusca] = useOutletContext();
+
+  // Aciona um linkamento assíncrono para colher os parâmetros presentes na tabela processando falhas isoladamente.
   const buscarDadosApi = async () => {
     try {
       const resposta = await fetch(
         "https://ong-apoio-pleno-api.onrender.com/api/equipamentos",
       );
       const dados = await resposta.json();
-      // Filtra apenas equipamentos em manutenção
+      // Isola e colhe os itens inativos que aguardam conserto na interface.
       setEquipamentos(dados.filter((e) => e.status === "Em manutenção"));
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
@@ -33,6 +32,13 @@ export default function Manutencao() {
   useEffect(() => {
     buscarDadosApi();
   }, []);
+
+  // Extrai as frações identificadas atreladas à digitação comparativa processada em nível condicional.
+  const manutencoesFiltradas = equipamentos.filter((item) => {
+    const termo = termoBusca ? termoBusca.toLowerCase() : "";
+    const nome = item.nome ? item.nome.toLowerCase() : "";
+    return nome.includes(termo);
+  });
 
   const abrirFinalizacao = (item) => {
     setEquipamentoSelecionado(item);
@@ -78,12 +84,12 @@ export default function Manutencao() {
             </thead>
 
             <tbody className="divide-y divide-slate-200">
-              {equipamentos.map((item) => (
+              {/* Disponibiliza o escopo formatado de visualização atrelada ao rastreio acionado continuamente. */}
+              {manutencoesFiltradas.map((item) => (
                 <tr
                   key={item.id}
                   className="flex flex-col sm:table-row p-4 border-b sm:border-b-0 hover:bg-slate-50 transition-colors"
                 >
-                  {/* Equipamento */}
                   <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
                     <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
                       Equipamento:
@@ -93,7 +99,6 @@ export default function Manutencao() {
                     </span>
                   </td>
 
-                  {/* Data */}
                   <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
                     <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
                       Data:
@@ -103,7 +108,6 @@ export default function Manutencao() {
                     </span>
                   </td>
 
-                  {/* Status */}
                   <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
                     <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
                       Status:
@@ -113,11 +117,7 @@ export default function Manutencao() {
                     </span>
                   </td>
 
-                  {/* Ações */}
-                  <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden">
-                      Ações:
-                    </span>
+                  <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center justify-center">
                     <div className="flex gap-4">
                       <button
                         onClick={() => abrirFinalizacao(item)}
@@ -142,7 +142,6 @@ export default function Manutencao() {
         </div>
       </section>
 
-      {/* Modais */}
       <ModalManutencaoFinalizar
         isOpen={modalFinalizarAberto}
         onClose={() => {

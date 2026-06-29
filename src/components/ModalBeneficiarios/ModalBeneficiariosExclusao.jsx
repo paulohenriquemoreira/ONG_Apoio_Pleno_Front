@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { FaTrashCan, FaXmark } from "react-icons/fa6";
 
-export default function ModalExclusao({ isOpen, onClose, beneficiario, atualizarLista }) {
+export default function ModalExclusao({
+  isOpen,
+  onClose,
+  beneficiario,
+  atualizarLista,
+}) {
   const [excluindo, setExcluindo] = useState(false);
   const [erro, setErro] = useState("");
 
-  // ♿ Tecla ESC para fechar
+  // Controla o fechamento do modal ao acionar a tecla de escape.
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
@@ -14,8 +19,10 @@ export default function ModalExclusao({ isOpen, onClose, beneficiario, atualizar
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Garante que o alerta não apareça caso o registro não exista.
   if (!isOpen || !beneficiario) return null;
 
+  // Processa a requisição de deleção para a API e atualiza a listagem.
   const handleDeletar = async () => {
     setExcluindo(true);
     setErro("");
@@ -23,15 +30,17 @@ export default function ModalExclusao({ isOpen, onClose, beneficiario, atualizar
     try {
       const resposta = await fetch(
         `https://ong-apoio-pleno-api.onrender.com/api/beneficiarios/${beneficiario.id}`,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
 
       if (resposta.ok) {
-        atualizarLista(); // Recarrega os dados instantaneamente na tabela pai
+        atualizarLista();
         onClose();
       } else {
         const dadosErro = await resposta.json();
-        setErro(dadosErro.erro || "Não foi possível excluir o cadastro no servidor.");
+        setErro(
+          dadosErro.erro || "Não foi possível excluir o cadastro no servidor.",
+        );
       }
     } catch (error) {
       console.error("Erro na requisição:", error);
@@ -43,8 +52,6 @@ export default function ModalExclusao({ isOpen, onClose, beneficiario, atualizar
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-      
-      {/* Mudança para role="alertdialog" por ser um alerta crítico de confirmação */}
       <main
         role="alertdialog"
         aria-modal="true"
@@ -52,28 +59,38 @@ export default function ModalExclusao({ isOpen, onClose, beneficiario, atualizar
         aria-describedby="modal-delete-desc"
         className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden border border-slate-100 p-6 space-y-6 text-center animate-scale-up"
       >
-        {/* Ícone de Alerta Vermelho com fundo estilizado */}
         <div className="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-50 border border-red-100">
           <FaTrashCan className="h-6 w-6 text-red-600" aria-hidden="true" />
         </div>
 
         <div className="space-y-2">
-          <h2 id="modal-delete-title" className="text-xl font-bold text-slate-800">
+          <h2
+            id="modal-delete-title"
+            className="text-xl font-bold text-slate-800"
+          >
             Confirmar Exclusão
           </h2>
-          <p id="modal-delete-desc" className="text-slate-500 text-sm leading-relaxed">
-            Tem certeza que deseja remover o cadastro de <strong className="text-slate-900 font-semibold">{beneficiario.nome}</strong>? Esta ação é permanente e não poderá ser desfeita.
+          <p
+            id="modal-delete-desc"
+            className="text-slate-500 text-sm leading-relaxed"
+          >
+            Tem certeza que deseja remover o cadastro de{" "}
+            <strong className="text-slate-900 font-semibold">
+              {beneficiario.nome}
+            </strong>
+            ? Esta ação é permanente e não poderá ser desfeita.
           </p>
         </div>
 
-        {/* Feedback de erro visual e sonoro */}
         {erro && (
-          <div role="alert" className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-xs font-medium text-left">
+          <div
+            role="alert"
+            className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-xs font-medium text-left"
+          >
             {erro}
           </div>
         )}
 
-        {/* Botões Responsivos (Full-width no celular, inline a partir de sm:) */}
         <footer className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
           <button
             type="button"

@@ -14,13 +14,13 @@ export default function ModalEdicao({
     email: "",
     telefone: "",
     endereco: "",
-    foto: null, // Substitui a foto atual se o usuário escolher um arquivo novo
+    foto: null,
     data_nascimento: "",
   });
   const [salvando, setSalvando] = useState(false);
   const [erroValidacao, setErroValidacao] = useState("");
 
-  // Sincroniza os dados do beneficiário selecionado sempre que o modal abrir
+  // Sincroniza os dados do beneficiário selecionado com o estado do formulário sempre que o modal abrir.
   useEffect(() => {
     if (beneficiario) {
       setForm({
@@ -36,7 +36,7 @@ export default function ModalEdicao({
     }
   }, [beneficiario, isOpen]);
 
-  // Tecla ESC para fechar
+  // Monitora o teclado e fecha a janela ao detectar o pressionamento da tecla ESC.
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
@@ -45,18 +45,22 @@ export default function ModalEdicao({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Evita a renderização caso os dados do modal ou do beneficiário não existam.
   if (!isOpen || !beneficiario) return null;
 
+  // Atualiza dinamicamente os valores de texto durante a digitação.
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
     setErroValidacao("");
   };
 
+  // Trata a alteração do arquivo de imagem.
   const handleFileChange = (e) => {
     setForm({ ...form, foto: e.target.files[0] });
   };
 
+  // Submete os dados atualizados para a API após validar regras e organizar o FormData.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSalvando(true);
@@ -65,7 +69,7 @@ export default function ModalEdicao({
     const documentoDigitado = form.documento.trim();
     const nomeDigitado = form.nome.trim().toLowerCase();
 
-    // Validação de duplicidade ignorando o ID atual
+    // Faz a validação de duplicidade, excluindo o ID atual para evitar falsos positivos do próprio registro.
     const duplicado = beneficiarios.find((item) => {
       return (
         item.id !== beneficiario.id &&
@@ -83,6 +87,7 @@ export default function ModalEdicao({
     }
 
     try {
+      // Estrutura os dados textuais e binários no FormData para o envio via PUT.
       const formData = new FormData();
       formData.append("nome", form.nome);
       formData.append("documento", form.documento);
@@ -95,6 +100,7 @@ export default function ModalEdicao({
         formData.append("foto", form.foto);
       }
 
+      // Executa a requisição de atualização para a API.
       const resposta = await fetch(
         `https://ong-apoio-pleno-api.onrender.com/api/beneficiarios/${beneficiario.id}`,
         {
@@ -157,7 +163,6 @@ export default function ModalEdicao({
             </div>
           )}
 
-          {/* Miniatura da foto atual */}
           <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
             <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-200 bg-white flex-shrink-0">
               {beneficiario.foto ? (

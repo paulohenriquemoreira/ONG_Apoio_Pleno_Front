@@ -7,7 +7,7 @@ export default function ModalCadastroBeneficiarios({
   beneficiarios,
   atualizarLista,
 }) {
-  // Estado inicial para limpar o formulário depois
+  // Define o estado inicial para resetar o formulário após salvar ou fechar.
   const estadoInicial = {
     nome: "",
     documento: "",
@@ -22,7 +22,7 @@ export default function ModalCadastroBeneficiarios({
   const [salvando, setSalvando] = useState(false);
   const [erroValidacao, setErroValidacao] = useState("");
 
-  //ESCUTA DO TECLADO: Fecha o modal ao apertar a tecla ESC
+  // Escuta o teclado e fecha o modal ao pressionar a tecla ESC.
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
@@ -33,28 +33,28 @@ export default function ModalCadastroBeneficiarios({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Se o modal não estiver aberto, não renderiza nada na tela
+  // Interrompe a renderização caso o modal não esteja ativo.
   if (!isOpen) return null;
 
-  // Manipulador dos inputs de texto normais
+  // Atualiza os valores de texto do formulário no estado.
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
-    setErroValidacao(""); // Limpa o erro enquanto o usuário digita
+    setErroValidacao(""); // Limpa os erros de validação durante a digitação.
   };
 
-  // Manipulador específico para o input de arquivo (Multer)
+  // Captura o arquivo de imagem selecionado e atualiza o estado.
   const handleFileChange = (e) => {
     setForm({ ...form, foto: e.target.files[0] });
   };
 
-  // O Coração do Envio e Validação de Duplicados
+  // Processa o envio do formulário, valida duplicidades e salva os dados na API.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSalvando(true);
     setErroValidacao("");
 
-    // --- ESCUDO DO FRONT-END: Validação de Duplicidade ---
+    // Faz a validação de duplicidade verificando o documento ou o nome.
     const documentoDigitado = form.documento.trim();
     const nomeDigitado = form.nome.trim().toLowerCase();
 
@@ -67,15 +67,14 @@ export default function ModalCadastroBeneficiarios({
 
     if (beneficiarioExistente) {
       setErroValidacao(
-        `Atenção! Já existe um cadastro com este documento ou nome (${beneficiarioExistente.nome}).`
+        `Atenção! Já existe um cadastro com este documento ou nome (${beneficiarioExistente.nome}).`,
       );
       setSalvando(false);
-      return; // Interrompe o fluxo se for duplicado
+      return;
     }
 
-    
     try {
-      // Como tem foto física, precisamos usar FormData em vez de JSON comum
+      // Monta o FormData para suportar o envio de arquivos e dados de texto simultaneamente.
       const formData = new FormData();
       formData.append("nome", form.nome);
       formData.append("documento", form.documento);
@@ -83,24 +82,25 @@ export default function ModalCadastroBeneficiarios({
       formData.append("telefone", form.telefone);
       formData.append("endereco", form.endereco);
       formData.append("data_nascimento", form.data_nascimento);
-      formData.append("data_cadastro", new Date().toISOString().split("T")[0]); // Gera a data de hoje automaticamente!
+      formData.append("data_cadastro", new Date().toISOString().split("T")[0]);
 
       if (form.foto) {
         formData.append("foto", form.foto);
       }
 
+      // Envia os dados estruturados para a rota de cadastro da API.
       const resposta = await fetch(
         "https://ong-apoio-pleno-api.onrender.com/api/beneficiarios",
         {
           method: "POST",
           body: formData,
-        }
+        },
       );
 
       if (resposta.ok) {
-        atualizarLista(); // Avisa o Pai para recarregar a tabela de beneficiários automaticamente
-        setForm(estadoInicial); // Limpa os campos do formulário
-        onClose(); // Fecha o modal
+        atualizarLista();
+        setForm(estadoInicial);
+        onClose();
       } else {
         const dadosErro = await resposta.json();
         setErroValidacao(dadosErro.erro || "Erro ao salvar no servidor.");
@@ -114,17 +114,13 @@ export default function ModalCadastroBeneficiarios({
   };
 
   return (
-    // Backdrop escuro do Modal
     <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-      
-      {/* Caixa estrutural do Modal com tags ARIA de Diálogo */}
-      <main 
+      <main
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
         className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
       >
-        {/* Cabeçalho do Modal */}
         <header className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
           <h2 id="modal-title" className="text-xl font-bold text-slate-800">
             Cadastrar Novo Beneficiário
@@ -132,27 +128,30 @@ export default function ModalCadastroBeneficiarios({
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition"
-            aria-label="Fechar modal" /* Evita botões sem nome no leitor de tela */
+            aria-label="Fechar modal"
           >
             <FaXmark className="w-5 h-5" aria-hidden="true" />
           </button>
         </header>
 
-        {/* Corpo do Formulário com Rolagem Responsiva */}
         <form
           onSubmit={handleSubmit}
           className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 text-left"
         >
-          {/* Exibição de Erros de Validação */}
           {erroValidacao && (
-            <div role="alert" className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm font-medium">
+            <div
+              role="alert"
+              className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm font-medium"
+            >
               {erroValidacao}
             </div>
           )}
 
           <div>
-            {/* Ligação do label com input através do htmlFor e id */}
-            <label htmlFor="nome" className="block text-xs font-bold text-slate-600 uppercase mb-1">
+            <label
+              htmlFor="nome"
+              className="block text-xs font-bold text-slate-600 uppercase mb-1"
+            >
               Nome Completo
             </label>
             <input
@@ -167,10 +166,12 @@ export default function ModalCadastroBeneficiarios({
             />
           </div>
 
-          {/* Grid responsiva: 1 coluna no mobile, 2 colunas a partir do 'sm:' */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="documento" className="block text-xs font-bold text-slate-600 uppercase mb-1">
+              <label
+                htmlFor="documento"
+                className="block text-xs font-bold text-slate-600 uppercase mb-1"
+              >
                 Documento / CPF
               </label>
               <input
@@ -185,7 +186,10 @@ export default function ModalCadastroBeneficiarios({
               />
             </div>
             <div>
-              <label htmlFor="telefone" className="block text-xs font-bold text-slate-600 uppercase mb-1">
+              <label
+                htmlFor="telefone"
+                className="block text-xs font-bold text-slate-600 uppercase mb-1"
+              >
                 Telefone
               </label>
               <input
@@ -202,7 +206,10 @@ export default function ModalCadastroBeneficiarios({
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-xs font-bold text-slate-600 uppercase mb-1">
+            <label
+              htmlFor="email"
+              className="block text-xs font-bold text-slate-600 uppercase mb-1"
+            >
               E-mail
             </label>
             <input
@@ -218,7 +225,10 @@ export default function ModalCadastroBeneficiarios({
           </div>
 
           <div>
-            <label htmlFor="endereco" className="block text-xs font-bold text-slate-600 uppercase mb-1">
+            <label
+              htmlFor="endereco"
+              className="block text-xs font-bold text-slate-600 uppercase mb-1"
+            >
               Endereço Residencial
             </label>
             <input
@@ -235,7 +245,10 @@ export default function ModalCadastroBeneficiarios({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="data_nascimento" className="block text-xs font-bold text-slate-600 uppercase mb-1">
+              <label
+                htmlFor="data_nascimento"
+                className="block text-xs font-bold text-slate-600 uppercase mb-1"
+              >
                 Data de Nascimento
               </label>
               <input
@@ -249,7 +262,10 @@ export default function ModalCadastroBeneficiarios({
               />
             </div>
             <div>
-              <label htmlFor="foto" className="block text-xs font-bold text-slate-600 uppercase mb-1">
+              <label
+                htmlFor="foto"
+                className="block text-xs font-bold text-slate-600 uppercase mb-1"
+              >
                 Foto de Perfil
               </label>
               <input
@@ -263,7 +279,6 @@ export default function ModalCadastroBeneficiarios({
             </div>
           </div>
 
-          {/* Rodapé de Ações do Form - Fixo na base para facilitar rolagem */}
           <footer className="pt-4 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white">
             <button
               type="button"

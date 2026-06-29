@@ -10,10 +10,12 @@ export default function ModalEdicao({
   const [form, setForm] = useState({});
   const [salvando, setSalvando] = useState(false);
 
+  // Inicializa e insere a listagem dos dados capturados ao acionar o componente.
   useEffect(() => {
     if (equipamento) setForm(equipamento);
   }, [equipamento]);
 
+  // Transmite as informações reconstruídas em direção ao repositório via PUT.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSalvando(true);
@@ -35,6 +37,7 @@ export default function ModalEdicao({
     }
   };
 
+  // Paralisa renderizações fantasmas originadas de janelas não ativadas.
   if (!isOpen) return null;
 
   return (
@@ -78,7 +81,9 @@ export default function ModalEdicao({
             <input
               className="w-full p-3 border rounded-lg"
               value={form.numero_serie || ""}
-              onChange={(e) => setForm({ ...form, numero_serie: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, numero_serie: e.target.value })
+              }
             />
           </div>
           <div>

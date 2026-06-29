@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import { FaPlus, FaBoxOpen, FaCircleInfo, FaBan } from "react-icons/fa6";
 import {
   ModalNova,
@@ -13,20 +14,33 @@ export default function Entregas() {
   const [modalCancelamentoAberto, setModalCancelamentoAberto] = useState(false);
   const [entregaSelecionada, setEntregaSelecionada] = useState(null);
 
+  // Captura o padrão de busca exposto pelo layout centralizado acoplado em nível de aplicação global.
+  const [termoBusca] = useOutletContext();
+
+  // Executa uma rotina contínua acionando as variáveis armazenadas processando erros de maneira isolada.
   const buscarEntregas = async () => {
     try {
       const res = await fetch(
         "https://ong-apoio-pleno-api.onrender.com/api/entregas",
       );
-      setEntregas(await res.json());
+      const dados = await res.json();
+      setEntregas(Array.isArray(dados) ? dados : []);
     } catch (e) {
       console.error("Erro ao buscar entregas:", e);
+      setEntregas([]);
     }
   };
 
   useEffect(() => {
     buscarEntregas();
   }, []);
+
+  // Extrai as frações identificadas repassando elementos específicos atrelados condicionalmente ao status.
+  const entregasFiltradas = entregas.filter((e) => {
+    const termo = termoBusca ? termoBusca.toLowerCase() : "";
+    const nome = e.beneficiario_nome ? e.beneficiario_nome.toLowerCase() : "";
+    return nome.includes(termo);
+  });
 
   const abrirDetalhes = (item) => {
     setEntregaSelecionada(item);
@@ -53,9 +67,6 @@ export default function Entregas() {
             <FaBoxOpen className="text-blue-600" aria-hidden="true" />
             <span>Gestão de Entregas</span>
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Gerenciamento de entregas de itens.
-          </p>
         </div>
         <button
           onClick={() => setModalNovaAberto(true)}
@@ -72,18 +83,17 @@ export default function Entregas() {
               <th className="p-4">Data</th>
               <th className="p-4">Beneficiário</th>
               <th className="p-4">Itens</th>
-              {/* O alinhamento das ações agora força centralização no desktop */}
               <th className="p-4 text-center">Ações</th>
             </tr>
           </thead>
 
           <tbody className="divide-y divide-slate-200">
-            {entregas.map((e) => (
+            {/* Disponibiliza o escopo formatado de visualização contínua das linhas processadas condicionalmente. */}
+            {entregasFiltradas.map((e) => (
               <tr
                 key={e.id}
                 className="flex flex-col sm:table-row p-4 border-b sm:border-b-0 hover:bg-slate-50 transition-colors"
               >
-                {/* Data */}
                 <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-center justify-between sm:justify-start">
                   <span className="font-bold text-[12px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
                     Data:
@@ -93,7 +103,6 @@ export default function Entregas() {
                   </span>
                 </td>
 
-                {/* Beneficiário */}
                 <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-center justify-between sm:justify-start">
                   <span className="font-bold text-[12px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
                     Beneficiário:
@@ -103,23 +112,19 @@ export default function Entregas() {
                   </span>
                 </td>
 
-                {/* Itens */}
                 <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-center justify-between sm:justify-start">
                   <span className="font-bold text-[12px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
                     Itens:
                   </span>
-                  <span className=" text-slate-700 ">
-                    {e.itens_quantidade} itens
+                  <span className="text-slate-700 text-xs sm:text-sm">
+                    {e.itens_quantidade || 0} itens
                   </span>
                 </td>
 
-                {/* Ações: Ajustado para alinhar no centro (desktop) e à direita (mobile) */}
                 <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center justify-between sm:justify-center">
                   <span className="font-bold text-[12px] text-slate-400 uppercase w-24 sm:hidden">
                     Ações:
                   </span>
-
-                  {/* Adicionamos a classe flex-1 e justify-center aqui */}
                   <div className="flex gap-4 justify-end sm:justify-center w-full">
                     <button
                       onClick={() => abrirDetalhes(e)}
@@ -143,7 +148,6 @@ export default function Entregas() {
         </table>
       </section>
 
-      {/* Modais */}
       <ModalNova
         isOpen={modalNovaAberto}
         onClose={() => setModalNovaAberto(false)}

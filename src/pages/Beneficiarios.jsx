@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import { FaUserGroup, FaPlus, FaPen, FaRegTrashCan } from "react-icons/fa6";
 import ModalCadastro from "../components/ModalBeneficiarios/ModalBeneficiariosCadastro";
 import ModalEdicao from "../components/ModalBeneficiarios/ModalBeneficiariosEdicao";
@@ -11,6 +12,10 @@ export default function Beneficiarios() {
   const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
   const [beneficiarioSelecionado, setBeneficiarioSelecionado] = useState(null);
 
+  // Armazena temporariamente os atributos informados externamente pela barra hierárquica baseada.
+  const [termoBusca] = useOutletContext();
+
+  // Aciona um linkamento assíncrono para colher os parâmetros consolidados presentes na tabela real remota.
   const buscarDadosApi = async () => {
     try {
       const resposta = await fetch(
@@ -23,10 +28,21 @@ export default function Beneficiarios() {
     }
   };
 
+  // Garante inicialização ativa das matrizes dependentes assim que renderizadas primariamente na janela.
   useEffect(() => {
     buscarDadosApi();
   }, []);
 
+  // Extrai simultaneamente as informações coincidentes relativas à nomeação unindo as duas métricas visíveis.
+  const listaFiltrada = beneficiarios.filter((item) => {
+    const termo = termoBusca.toLowerCase();
+    return (
+      item.nome.toLowerCase().includes(termo) ||
+      (item.documento && item.documento.includes(termo))
+    );
+  });
+
+  // Transporta a variável estática em direção ao estado manipulável abrindo a seção subsequente paralela.
   const abrirEdicao = (beneficiario) => {
     setBeneficiarioSelecionado(beneficiario);
     setModalEdicaoAberto(true);
@@ -63,7 +79,6 @@ export default function Beneficiarios() {
 
       <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <table className="w-full text-left border-collapse">
-          {/* Esconde o cabeçalho no mobile */}
           <thead className="hidden sm:table-header-group bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase">
             <tr>
               <th className="p-4">Foto</th>
@@ -74,18 +89,19 @@ export default function Beneficiarios() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {beneficiarios.map((item) => (
+            {/* Compila e organiza interativamente as camadas resultantes relativas aos comandos aplicados indiretamente. */}
+            {listaFiltrada.map((item) => (
               <tr
                 key={item.id}
                 className="block sm:table-row p-4 sm:p-0 hover:bg-slate-50"
               >
-                {/* Foto: Escondida no Mobile */}
                 <td className="hidden sm:table-cell p-4">
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
                     {item.foto ? (
                       <img
                         src={`https://ong-apoio-pleno-api.onrender.com/upload/${item.foto}`}
                         className="w-full h-full object-cover"
+                        alt="Foto"
                       />
                     ) : (
                       <span className="font-bold text-slate-400">
@@ -94,32 +110,24 @@ export default function Beneficiarios() {
                     )}
                   </div>
                 </td>
-
-                {/* Nome: Com label no Mobile */}
                 <td
                   className="p-2 sm:p-4 block sm:table-cell text-right sm:text-left before:content-[attr(data-label)] before:float-left before:font-bold before:text-slate-500 sm:before:content-none"
                   data-label="Nome:"
                 >
                   {item.nome}
                 </td>
-
-                {/* Documento: Com label no Mobile */}
                 <td
                   className="p-2 sm:p-4 block sm:table-cell text-right sm:text-left before:content-[attr(data-label)] before:float-left before:font-bold before:text-slate-500 sm:before:content-none"
                   data-label="Documento:"
                 >
                   {item.documento}
                 </td>
-
-                {/* Telefone: Com label no Mobile */}
                 <td
                   className="p-2 sm:p-4 block sm:table-cell text-right sm:text-left before:content-[attr(data-label)] before:float-left before:font-bold before:text-slate-500 sm:before:content-none"
                   data-label="Telefone:"
                 >
                   {item.telefone}
                 </td>
-
-                {/* Ações: Sempre visíveis, com label no Mobile */}
                 <td
                   className="p-4 block sm:table-cell text-right sm:text-center before:content-[attr(data-label)] before:float-left before:font-bold before:text-slate-500 sm:before:content-none"
                   data-label="Ações:"
@@ -145,7 +153,6 @@ export default function Beneficiarios() {
         </table>
       </section>
 
-      
       <ModalCadastro
         isOpen={modalCadastroAberto}
         onClose={() => setModalCadastroAberto(false)}

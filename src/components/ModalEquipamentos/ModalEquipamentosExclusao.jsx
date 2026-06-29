@@ -9,6 +9,7 @@ export default function ModalExclusao({
 }) {
   const [excluindo, setExcluindo] = useState(false);
 
+  // Exclui de forma contínua da listagem remota o registro apontado ao confirmar o acionamento.
   const handleDeletar = async () => {
     setExcluindo(true);
     try {
@@ -19,13 +20,12 @@ export default function ModalExclusao({
         },
       );
 
-      const data = await res.json(); // Captura o JSON do Back-end
+      const data = await res.json();
 
       if (res.ok) {
         atualizarLista();
         onClose();
       } else {
-        // Aqui ele vai exibir a mensagem que definimos no Controller acima
         alert(data.mensagem);
       }
     } catch (error) {
@@ -35,6 +35,7 @@ export default function ModalExclusao({
     }
   };
 
+  // Barra renderização vazia em caso de inatividade prévia da função.
   if (!isOpen) return null;
 
   return (

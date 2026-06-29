@@ -15,7 +15,7 @@ export default function ModalNovoEmprestimo({
   });
   const [salvando, setSalvando] = useState(false);
 
-  // Busca listas ao abrir o modal
+  // Solicita ao back-end as listas de dependências assim que a janela de empréstimo for aberta.
   useEffect(() => {
     if (isOpen) {
       Promise.all([
@@ -26,13 +26,14 @@ export default function ModalNovoEmprestimo({
           "https://ong-apoio-pleno-api.onrender.com/api/beneficiarios",
         ).then((res) => res.json()),
       ]).then(([eq, ben]) => {
-        // Filtra apenas disponíveis
+        // Separa da listagem de equipamentos apenas os itens livres no estoque.
         setEquipamentos(eq.filter((e) => e.status === "Disponível"));
         setBeneficiarios(ben);
       });
     }
   }, [isOpen]);
 
+  // Transmite as seleções via payload para inicializar a locação na base de dados.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSalvando(true);
@@ -54,6 +55,7 @@ export default function ModalNovoEmprestimo({
     }
   };
 
+  // Finaliza a função se o modal estiver retraído.
   if (!isOpen) return null;
 
   return (
@@ -119,9 +121,10 @@ export default function ModalNovoEmprestimo({
           <button
             type="submit"
             form="form-emp"
+            disabled={salvando}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg"
           >
-            Confirmar
+            {salvando ? "Salvando..." : "Salvar"}
           </button>
         </footer>
       </main>

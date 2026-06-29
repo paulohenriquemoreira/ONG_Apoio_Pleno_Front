@@ -10,6 +10,7 @@ export default function ModalManutencaoEquipamentos({
   const [form, setForm] = useState({ motivo: "", previsao: "" });
   const [salvando, setSalvando] = useState(false);
 
+  // Codifica os detalhes de avariações e gera um aviso pendente no log de manutenções globais.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSalvando(true);
@@ -35,6 +36,7 @@ export default function ModalManutencaoEquipamentos({
     }
   };
 
+  // Garante suspensão visual temporária da lógica ausente.
   if (!isOpen) return null;
 
   return (

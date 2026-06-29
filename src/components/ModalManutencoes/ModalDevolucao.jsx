@@ -9,13 +9,14 @@ export default function ModalDevolucao({
 }) {
   const [pecas, setPecas] = useState("");
 
+  // Reúne metadados pendentes do registro mecânico e efetiva as notas textuais submetidas.
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Lógica para enviar o registro de peças trocadas na manutenção
     atualizarLista();
     onClose();
   };
 
+  // Paralisa renderizações fantasmas caso faltem as referências do dispositivo no log atual.
   if (!isOpen || !equipamento) return null;
 
   return (

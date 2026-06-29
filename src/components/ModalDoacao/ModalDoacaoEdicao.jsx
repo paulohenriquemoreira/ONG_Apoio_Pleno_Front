@@ -7,38 +7,65 @@ export default function ModalEdicaoDoacao({
   doacao,
   atualizarLista,
 }) {
-  const [form, setForm] = useState({ doador: "", item: "", quantidade: "" });
+  const [form, setForm] = useState({
+    doador: "",
+    item: "",
+    quantidade: "",
+    observacoes: "",
+    categoria: "",
+    unidade_medida: "",
+  });
 
+  // Preenche os campos do formulário com os dados carregados na edição de doação.
   useEffect(() => {
     if (doacao)
       setForm({
-        doador: doacao.doador,
-        item: doacao.item,
-        quantidade: doacao.quantidade,
+        doador: doacao.doador || "",
+        item: doacao.item || "",
+        quantidade: doacao.quantidade || "",
+        observacoes: doacao.observacoes || "",
+        categoria: doacao.categoria || "Outros",
+        unidade_medida: doacao.unidade_medida || "Unid",
       });
   }, [doacao, isOpen]);
 
+  // Interrompe o processo caso os dados estejam ausentes.
   if (!isOpen || !doacao) return null;
 
+  // Gerencia o fluxo de salvamento de dados via requisição PUT.
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // fetch PUT aqui...
-    atualizarLista();
-    onClose();
+    try {
+      const res = await fetch(
+        `https://ong-apoio-pleno-api.onrender.com/api/doacoes/${doacao.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        },
+      );
+
+      if (res.ok) {
+        atualizarLista();
+        onClose();
+      } else {
+        const erro = await res.json();
+        alert("Erro ao salvar: " + (erro.mensagem || "Verifique os dados"));
+      }
+    } catch (error) {
+      console.error("Erro:", error);
+      alert("Erro ao conectar com o servidor.");
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <main
-        role="dialog"
-        aria-modal="true"
-        className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden"
-      >
+      <main className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
         <header className="bg-slate-50 p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-bold text-slate-800">Editar Doação</h2>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:bg-slate-200"
+            className="p-1.5 text-slate-400 hover:bg-slate-200 rounded"
           >
             <FaXmark />
           </button>
@@ -49,7 +76,6 @@ export default function ModalEdicaoDoacao({
               Doador
             </label>
             <input
-              name="doador"
               value={form.doador}
               onChange={(e) => setForm({ ...form, doador: e.target.value })}
               className="w-full px-3 py-2.5 border rounded-lg text-sm"
@@ -58,10 +84,9 @@ export default function ModalEdicaoDoacao({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
-                Item
+                Item Doado
               </label>
               <input
-                name="item"
                 value={form.item}
                 onChange={(e) => setForm({ ...form, item: e.target.value })}
                 className="w-full px-3 py-2.5 border rounded-lg text-sm"
@@ -73,7 +98,6 @@ export default function ModalEdicaoDoacao({
               </label>
               <input
                 type="number"
-                name="quantidade"
                 value={form.quantidade}
                 onChange={(e) =>
                   setForm({ ...form, quantidade: e.target.value })
@@ -84,17 +108,16 @@ export default function ModalEdicaoDoacao({
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
-              Descrição
+              Observações
             </label>
-            <input
-              type="text"
-              name="descricao"
-              value={form.descricao}
-              onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+            <textarea
+              value={form.observacoes}
+              onChange={(e) =>
+                setForm({ ...form, observacoes: e.target.value })
+              }
               className="w-full px-3 py-2.5 border rounded-lg text-sm"
             />
           </div>
-
           <footer className="pt-4 flex justify-end border-t">
             <button
               type="submit"

@@ -16,7 +16,7 @@ export default function ModalCadastroEquipamento({
   });
   const [salvando, setSalvando] = useState(false);
 
-  // Fecha com ESC
+  // Monitora o uso do teclado e permite descartar a janela ativa de maneira rápida.
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
@@ -25,8 +25,10 @@ export default function ModalCadastroEquipamento({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Se a prop condicional indicar desativação, retorna apenas dados nulos à árvore raiz.
   if (!isOpen) return null;
 
+  // Processa a montagem estrutural e emite a requisição POST embutindo as informações captadas.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSalvando(true);
@@ -67,7 +69,6 @@ export default function ModalCadastroEquipamento({
           onSubmit={handleSubmit}
           className="p-6 space-y-4 overflow-y-auto"
         >
-          {/* Inputs com labels padronizados */}
           <div>
             <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
               Nome

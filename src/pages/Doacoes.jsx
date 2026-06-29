@@ -1,23 +1,18 @@
 import { useState, useEffect } from "react";
-import {
-  FaPlus,
-  FaHandHoldingDollar,
-  FaPen,
-  FaRotateLeft,
-} from "react-icons/fa6";
-import {
-  ModalNova,
-  ModalEdicao,
-  ModalEstorno,
-} from "../components/ModalDoacao/Index.js";
+import { useOutletContext } from "react-router-dom";
+import { FaPlus, FaHandHoldingDollar, FaPen } from "react-icons/fa6";
+import { ModalNova, ModalEdicao } from "../components/ModalDoacao/Index.js";
 
 export default function Doacoes() {
   const [doacoes, setDoacoes] = useState([]);
   const [modalNovaAberto, setModalNovaAberto] = useState(false);
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
-  const [modalEstornoAberto, setModalEstornoAberto] = useState(false);
   const [doacaoSelecionada, setDoacaoSelecionada] = useState(null);
 
+  // Captura os valores de busca inseridos no layout base, possibilitando cruzamentos dinâmicos internos.
+  const [termoBusca] = useOutletContext();
+
+  // Executa uma rotina contínua acionando as variáveis armazenadas diretamente pelo servidor global hospedado.
   const buscarDoacoes = async () => {
     try {
       const resposta = await fetch(
@@ -34,14 +29,18 @@ export default function Doacoes() {
     buscarDoacoes();
   }, []);
 
+  // Extrai da matriz total somente itens parcialmente idênticos às diretrizes informadas na seção do filtro principal.
+  const doacoesFiltradas = doacoes.filter((item) => {
+    const termo = termoBusca.toLowerCase();
+    return (
+      (item.doador && item.doador.toLowerCase().includes(termo)) ||
+      (item.item && item.item.toLowerCase().includes(termo))
+    );
+  });
+
   const abrirEdicao = (doacao) => {
     setDoacaoSelecionada(doacao);
     setModalEdicaoAberto(true);
-  };
-
-  const abrirEstorno = (doacao) => {
-    setDoacaoSelecionada(doacao);
-    setModalEstornoAberto(true);
   };
 
   return (
@@ -78,60 +77,32 @@ export default function Doacoes() {
               <tr>
                 <th className="p-4">Doador</th>
                 <th className="p-4">Data</th>
-                <th className="p-4">Descrição</th>
+                <th className="p-4">Item Doado</th>
+                <th className="p-4">Quantidade</th>
                 <th className="p-4 text-center">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {doacoes.map((item) => (
+              {/* Disponibiliza o escopo formatado de visualização contínua das linhas processadas condicionalmente. */}
+              {doacoesFiltradas.map((item) => (
                 <tr
                   key={item.id}
-                  className="flex flex-col sm:table-row p-4 border-b sm:border-b-0 hover:bg-slate-50 transition-colors"
+                  className="flex flex-col sm:table-row p-4 border-b hover:bg-slate-50 transition-colors"
                 >
-                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
-                      Doador:
-                    </span>
-                    <span className="text-xs sm:text-sm font-medium text-slate-900">
-                      {item.doador}
-                    </span>
+                  <td className="p-2 sm:p-4">{item.doador}</td>
+                  <td className="p-2 sm:p-4">{item.data_doacao}</td>
+                  <td className="p-2 sm:p-4">{item.item}</td>
+                  <td className="p-2 sm:p-4">
+                    {item.quantidade}{" "}
+                    {Number(item.quantidade) === 1 ? "Unidade" : "Unidades"}
                   </td>
-                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
-                      Data:
-                    </span>
-                    <span className="text-xs sm:text-sm text-slate-700">
-                      {item.data_doacao}
-                    </span>
-                  </td>
-                  <td className="flex sm:table-cell py-3 sm:p-4 border-b sm:border-0 border-slate-100 items-start">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden shrink-0 mt-0.5">
-                      Desc:
-                    </span>
-                    <span className="text-xs sm:text-sm text-slate-700">
-                      {item.descricao}
-                    </span>
-                  </td>
-                  <td className="flex sm:table-cell py-3 sm:p-4 mt-2 sm:mt-0 items-center">
-                    <span className="font-bold text-[10px] text-slate-400 uppercase w-20 sm:hidden">
-                      Ações:
-                    </span>
-                    <div className="flex gap-4">
-                      <button
-                        onClick={() => abrirEdicao(item)}
-                        className="text-blue-600 hover:text-blue-800 p-1 transition"
-                        title="Editar"
-                      >
-                        <FaPen size={18} />
-                      </button>
-                      <button
-                        onClick={() => abrirEstorno(item)}
-                        className="text-amber-600 hover:text-amber-800 p-1 transition"
-                        title="Estornar"
-                      >
-                        <FaRotateLeft size={18} />
-                      </button>
-                    </div>
+                  <td className="p-2 sm:p-4 text-center">
+                    <button
+                      onClick={() => abrirEdicao(item)}
+                      className="text-blue-600 hover:text-blue-800 transition"
+                    >
+                      <FaPen />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -149,15 +120,6 @@ export default function Doacoes() {
         isOpen={modalEdicaoAberto}
         onClose={() => {
           setModalEdicaoAberto(false);
-          setDoacaoSelecionada(null);
-        }}
-        doacao={doacaoSelecionada}
-        atualizarLista={buscarDoacoes}
-      />
-      <ModalEstorno
-        isOpen={modalEstornoAberto}
-        onClose={() => {
-          setModalEstornoAberto(false);
           setDoacaoSelecionada(null);
         }}
         doacao={doacaoSelecionada}
