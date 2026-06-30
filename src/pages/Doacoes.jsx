@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import { FaPlus, FaHandHoldingDollar, FaPen } from "react-icons/fa6";
-import { ModalNova, ModalEdicao } from "../components/ModalDoacao/Index.js";
+import { ModalNova, ModalEdicao } from "../components/ModalDoacao/index.js";
 
 export default function Doacoes() {
   const [doacoes, setDoacoes] = useState([]);
