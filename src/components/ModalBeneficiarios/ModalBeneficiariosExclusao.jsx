@@ -10,7 +10,7 @@ export default function ModalExclusao({
   const [excluindo, setExcluindo] = useState(false);
   const [erro, setErro] = useState("");
 
-  // Controla o fechamento do modal ao acionar a tecla de escape.
+  // Controla o fechamento do modal ao acionar a tecla de escape minimizando a interface.
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
@@ -19,15 +19,16 @@ export default function ModalExclusao({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Garante que o alerta não apareça caso o registro não exista.
+  // Garante que o alerta não apareça desconfigurado caso o registro principal falhe ao ser passado.
   if (!isOpen || !beneficiario) return null;
 
-  // Processa a requisição de deleção para a API e atualiza a listagem.
+  // Emite um aviso estruturado destrutivo para a API filtrando ativamente travas estruturais de banco.
   const handleDeletar = async () => {
     setExcluindo(true);
     setErro("");
 
     try {
+      // Aponta para o servidor na nuvem para manter a paridade com as outras requisições do sistema.
       const resposta = await fetch(
         `https://ong-apoio-pleno-api.onrender.com/api/beneficiarios/${beneficiario.id}`,
         { method: "DELETE" },
@@ -38,13 +39,27 @@ export default function ModalExclusao({
         onClose();
       } else {
         const dadosErro = await resposta.json();
-        setErro(
-          dadosErro.erro || "Não foi possível excluir o cadastro no servidor.",
-        );
+        console.error("Erro interno apontado pela API no delete:", dadosErro);
+
+        // Avalia se o bloqueio provém de uma restrição interna onde dependências bloqueiam a exclusão final.
+        if (
+          resposta.status === 500 ||
+          (dadosErro.mensagem && dadosErro.mensagem.includes("Erro interno"))
+        ) {
+          setErro(
+            "Bloqueado: Este beneficiário possui Empréstimos ou Entregas em seu nome. Exclua-os primeiro!",
+          );
+        } else {
+          setErro(
+            dadosErro.mensagem ||
+              dadosErro.erro ||
+              "Não foi possível excluir o cadastro no servidor.",
+          );
+        }
       }
     } catch (error) {
-      console.error("Erro na requisição:", error);
-      setErro("Falha de conexão com o servidor.");
+      console.error("Erro na requisição DELETE:", error);
+      setErro("Falha de conexão com a API na nuvem. A rota não respondeu.");
     } finally {
       setExcluindo(false);
     }

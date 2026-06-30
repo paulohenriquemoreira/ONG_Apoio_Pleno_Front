@@ -67,6 +67,7 @@ export default function Entregas() {
             <FaBoxOpen className="text-blue-600" aria-hidden="true" />
             <span>Gestão de Entregas</span>
           </h1>
+          <p className="text-slate-500">Gerenciamento de entregas de doações</p>
         </div>
         <button
           onClick={() => setModalNovaAberto(true)}

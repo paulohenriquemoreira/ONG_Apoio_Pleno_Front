@@ -65,9 +65,7 @@ export default function Manutencao() {
             <FaScrewdriverWrench className="text-blue-600" aria-hidden="true" />
             <span>Oficina / Manutenção</span>
           </h1>
-          <p className="text-slate-500 text-sm">
-            Gerenciamento de equipamentos em reparo.
-          </p>
+           <p className="text-slate-500">Gerenciamento de equipamentos em reparo</p>
         </div>
       </header>
 

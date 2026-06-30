@@ -77,6 +77,7 @@ export default function Emprestimos() {
             <FaHandshake className="text-blue-600" aria-hidden="true" />
             <span>Gestão de Empréstimos</span>
           </h1>
+           <p className="text-slate-500">Gerenciamento de empréstimos de equipamentos</p>
         </div>
         <button
           onClick={() => setModalNovoAberto(true)}

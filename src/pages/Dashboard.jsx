@@ -19,7 +19,7 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
+  LabelList,
 } from "recharts";
 
 export default function Dashboard() {
@@ -39,40 +39,114 @@ export default function Dashboard() {
   const [alertaBeneficiarios, setAlertaBeneficiarios] = useState([]);
   const [termoBusca] = useOutletContext();
 
-  // Executa rotinas preparatórias e acumula respostas processadas ativando matrizes consolidadas primárias.
+  // Executa o resgate de dados em paralelo e processa as métricas de negócio de forma centralizada.
   useEffect(() => {
     const buscarDados = async () => {
       try {
-        const resResumo = await fetch(
-          "https://ong-apoio-pleno-api.onrender.com/api/dashboard",
-        );
-        const dados = await resResumo.json();
-        setResumo(dados);
+        const [resEq, resEmp, resDoacoes, resEntregas, resBen] =
+          await Promise.all([
+            fetch("https://ong-apoio-pleno-api.onrender.com/api/equipamentos"),
+            fetch("https://ong-apoio-pleno-api.onrender.com/api/emprestimos"),
+            fetch("https://ong-apoio-pleno-api.onrender.com/api/doacoes"),
+            fetch("https://ong-apoio-pleno-api.onrender.com/api/entregas"),
+            fetch("https://ong-apoio-pleno-api.onrender.com/api/beneficiarios"),
+          ]);
 
-        const resEmp = await fetch(
-          "https://ong-apoio-pleno-api.onrender.com/api/emprestimos",
-        );
+        const todosEquipamentos = await resEq.json();
         const todosEmprestimos = await resEmp.json();
+        const todasDoacoes = await resDoacoes.json();
+        const todasEntregas = await resEntregas.json();
+        const todosBeneficiarios = await resBen.json();
 
+        // Calcula KPIs básicos baseando-se no estado atual do banco de dados.
+        const qtdManutencao = Array.isArray(todosEquipamentos)
+          ? todosEquipamentos.filter(
+              (e) => e.status?.toLowerCase() === "em manutenção",
+            ).length
+          : 0;
+        const qtdDisponivel = Array.isArray(todosEquipamentos)
+          ? todosEquipamentos.filter(
+              (e) => e.status?.toLowerCase() === "disponível",
+            ).length
+          : 0;
+        const qtdUso = Array.isArray(todosEquipamentos)
+          ? todosEquipamentos.filter(
+              (e) => e.status?.toLowerCase() === "emprestado",
+            ).length
+          : 0;
+        const qtdFamilias = Array.isArray(todosBeneficiarios)
+          ? todosBeneficiarios.length
+          : 0;
+
+        // Mapeia a frequência de uso dos equipamentos para compor o gráfico de requisitados.
+        const contagemEquipamentos = {};
+        if (Array.isArray(todosEmprestimos)) {
+          todosEmprestimos.forEach((emp) => {
+            if (emp.equipamento_nome) {
+              contagemEquipamentos[emp.equipamento_nome] =
+                (contagemEquipamentos[emp.equipamento_nome] || 0) + 1;
+            }
+          });
+        }
+
+        const graficoMaisRequisitados = Object.keys(contagemEquipamentos)
+          .map((nome) => ({ name: nome, value: contagemEquipamentos[nome] }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 5);
+
+        // Soma as quantidades de suprimentos de forma granular para os relatórios de estoque.
+        const somarItem = (lista, categoriaAlvo, termo) =>
+          lista
+            .filter(
+              (item) =>
+                item.categoria === categoriaAlvo ||
+                (item.item && item.item.toLowerCase().includes(termo)),
+            )
+            .reduce((acc, curr) => acc + Number(curr.quantidade || 0), 0);
+
+        const cestasRecebidas = somarItem(todasDoacoes, "Alimento", "cesta");
+        const cestasDoadas = somarItem(todasEntregas, "Alimento", "cesta");
+        const roupasRecebidas = somarItem(todasDoacoes, "Vestuário", "roupa");
+        const roupasDoadas = somarItem(todasEntregas, "Vestuário", "roupa");
+
+        setResumo({
+          kpis: {
+            familias: qtdFamilias,
+            equipamentos_uso: qtdUso,
+            estoque_disponivel: qtdDisponivel,
+            manutencao: qtdManutencao,
+          },
+          mais_requisitados: graficoMaisRequisitados,
+          suprimentos: {
+            cestas: { recebidas: cestasRecebidas, doadas: cestasDoadas },
+            roupas: { recebidas: roupasRecebidas, doadas: roupasDoadas },
+          },
+        });
+
+        // Identifica empréstimos ativos com data de devolução vencida para compor o alerta.
         const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
         setAlertaBeneficiarios(
-          todosEmprestimos.filter((emp) => {
-            if (emp.status !== "Ativo") return false;
-            return (
-              (hoje - new Date(emp.data_inicio)) / (1000 * 60 * 60 * 24) > 30
-            );
-          }),
+          Array.isArray(todosEmprestimos)
+            ? todosEmprestimos.filter((emp) => {
+                if (emp.status && emp.status.toLowerCase() === "devolvido")
+                  return false;
+                const dataDev = new Date(emp.data_devolucao);
+                dataDev.setHours(0, 0, 0, 0);
+                return hoje > dataDev;
+              })
+            : [],
         );
       } catch (erro) {
-        console.error("Erro ao buscar dados:", erro);
+        console.error("Erro ao processar dados:", erro);
       }
     };
+
     buscarDados();
   }, []);
 
-  // Extrai as frações identificadas repassando elementos específicos dependentes em formato limpo.
   const alertasFiltrados = alertaBeneficiarios.filter((b) =>
-    b.beneficiario_nome.toLowerCase().includes(termoBusca.toLowerCase()),
+    b.beneficiario_nome?.toLowerCase().includes(termoBusca.toLowerCase()),
   );
 
   const dadosEstoque = [
@@ -93,15 +167,12 @@ export default function Dashboard() {
     <main role="main" className="space-y-8 animate-fade-in p-4 sm:p-6">
       <header>
         <h1 className="text-3xl font-bold text-slate-800">Dashboard</h1>
-        <p className="text-slate-500">Visão geral da operação da ONG</p>
       </header>
 
-      {/* Condiciona visualmente relatórios provindos dos cálculos passados se as respostas acusarem retornos. */}
       {alertasFiltrados.length > 0 && (
-        <section className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm">
+        <section className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm">
           <div className="flex items-center gap-3 text-amber-800 font-bold mb-2">
-            <FaTriangleExclamation />{" "}
-            <h2>Atenção: Acompanhamento Necessário</h2>
+            <FaTriangleExclamation /> <h2>Empréstimos Vencidos</h2>
           </div>
           <ul className="list-disc list-inside text-sm text-amber-800">
             {alertasFiltrados.map((b) => (
@@ -113,7 +184,6 @@ export default function Dashboard() {
         </section>
       )}
 
-      {/* Acopla e disponibiliza os resumos atrelados baseados no repasse constante do front-end contínuo. */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
@@ -143,7 +213,7 @@ export default function Dashboard() {
         ].map((kpi, idx) => (
           <article
             key={idx}
-            className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm"
+            className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4"
           >
             <div
               className={`text-2xl text-${kpi.color}-600 bg-${kpi.color}-100 p-3 rounded-lg`}
@@ -160,9 +230,8 @@ export default function Dashboard() {
         ))}
       </section>
 
-      {/* Estabelece molduras visuais de medição fracionadas garantindo espaço de renderização condicional externa. */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm">
+        <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 className="font-bold text-slate-800 mb-4">Saúde do Estoque</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -183,7 +252,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm">
+        <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 className="font-bold text-slate-800 mb-4">
             Equipamentos Mais Requisitados
           </h2>
@@ -194,43 +263,45 @@ export default function Dashboard() {
                 <YAxis
                   dataKey="name"
                   type="category"
-                  width={100}
-                  tick={{ fontSize: 12 }}
+                  width={120}
+                  tick={{ fontSize: 10 }}
                 />
                 <Tooltip />
-                <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="value" fill="#3b82f6">
+                  <LabelList dataKey="value" position="right" fill="#64748b" />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </section>
       </div>
 
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm">
+      <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
         <h2 className="font-bold text-slate-800 mb-4">Resumo de Suprimentos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex items-center gap-4 border p-4 rounded-lg">
+          <div className="flex items-center gap-4 border p-4 rounded-lg bg-slate-50">
             <FaBasketShopping className="text-3xl text-emerald-600" />
             <div>
-              <p className="font-bold">Cestas Básicas</p>
-              <div className="flex gap-4 text-sm">
-                <span className="text-emerald-600">
+              <p className="font-bold text-slate-800">Cestas Básicas</p>
+              <div className="flex gap-4 text-sm mt-1">
+                <span className="text-emerald-700 font-medium bg-emerald-100 px-2 rounded">
                   Recebidas: {resumo.suprimentos.cestas.recebidas}
                 </span>
-                <span className="text-blue-600">
+                <span className="text-blue-700 font-medium bg-blue-100 px-2 rounded">
                   Doadas: {resumo.suprimentos.cestas.doadas}
                 </span>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4 border p-4 rounded-lg">
+          <div className="flex items-center gap-4 border p-4 rounded-lg bg-slate-50">
             <FaShirt className="text-3xl text-emerald-600" />
             <div>
-              <p className="font-bold">Roupas</p>
-              <div className="flex gap-4 text-sm">
-                <span className="text-emerald-600">
+              <p className="font-bold text-slate-800">Roupas / Vestuário</p>
+              <div className="flex gap-4 text-sm mt-1">
+                <span className="text-emerald-700 font-medium bg-emerald-100 px-2 rounded">
                   Recebidas: {resumo.suprimentos.roupas.recebidas}
                 </span>
-                <span className="text-blue-600">
+                <span className="text-blue-700 font-medium bg-blue-100 px-2 rounded">
                   Doadas: {resumo.suprimentos.roupas.doadas}
                 </span>
               </div>

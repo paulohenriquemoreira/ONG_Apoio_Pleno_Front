@@ -68,6 +68,7 @@ export default function Beneficiarios() {
             <FaUserGroup className="text-blue-600" aria-hidden="true" />
             <span>Gestão de Beneficiários</span>
           </h1>
+          <p className="text-slate-500">Gerenciamento de beneficiários cadastrados</p>
         </div>
         <button
           onClick={() => setModalCadastroAberto(true)}

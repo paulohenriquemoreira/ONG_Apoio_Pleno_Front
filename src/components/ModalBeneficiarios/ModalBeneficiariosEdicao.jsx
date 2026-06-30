@@ -16,6 +16,7 @@ export default function ModalEdicao({
     endereco: "",
     foto: null,
     data_nascimento: "",
+    data_cadastro: "",
   });
   const [salvando, setSalvando] = useState(false);
   const [erroValidacao, setErroValidacao] = useState("");
@@ -31,6 +32,8 @@ export default function ModalEdicao({
         endereco: beneficiario.endereco || "",
         foto: null,
         data_nascimento: beneficiario.data_nascimento || "",
+        data_cadastro:
+          beneficiario.data_cadastro || new Date().toISOString().split("T")[0],
       });
       setErroValidacao("");
     }
@@ -55,12 +58,12 @@ export default function ModalEdicao({
     setErroValidacao("");
   };
 
-  // Trata a alteração do arquivo de imagem.
+  // Trata a alteração do arquivo de imagem injetando o anexo fisicamente no estado.
   const handleFileChange = (e) => {
     setForm({ ...form, foto: e.target.files[0] });
   };
 
-  // Submete os dados atualizados para a API após validar regras e organizar o FormData.
+  // Submete os dados atualizados formatando rigorosamente em FormData para compatibilidade com o Multer.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSalvando(true);
@@ -87,7 +90,7 @@ export default function ModalEdicao({
     }
 
     try {
-      // Estrutura os dados textuais e binários no FormData para o envio via PUT.
+      // Estrutura obrigatoriamente os dados em FormData para ser aceito pela rota do Back-end.
       const formData = new FormData();
       formData.append("nome", form.nome);
       formData.append("documento", form.documento);
@@ -96,11 +99,17 @@ export default function ModalEdicao({
       formData.append("endereco", form.endereco);
       formData.append("data_nascimento", form.data_nascimento);
 
+      // Injeta a data de cadastro original para não quebrar a instrução SQL no servidor.
+      if (form.data_cadastro) {
+        formData.append("data_cadastro", form.data_cadastro);
+      }
+
+      // Anexa a foto somente se o usuário tiver escolhido um novo arquivo no input.
       if (form.foto) {
         formData.append("foto", form.foto);
       }
 
-      // Executa a requisição de atualização para a API.
+      // Executa a requisição de atualização apontando para a API hospedada no Render.
       const resposta = await fetch(
         `https://ong-apoio-pleno-api.onrender.com/api/beneficiarios/${beneficiario.id}`,
         {
@@ -114,13 +123,16 @@ export default function ModalEdicao({
         onClose();
       } else {
         const dadosErro = await resposta.json();
+        console.error("Resposta do servidor:", dadosErro);
         setErroValidacao(
-          dadosErro.erro || "Erro ao atualizar dados no servidor.",
+          dadosErro.mensagem ||
+            dadosErro.erro ||
+            "Falha do servidor ao tentar salvar as alterações.",
         );
       }
     } catch (error) {
-      console.error("Erro na requisição:", error);
-      setErroValidacao("Não foi possível conectar ao servidor.");
+      console.error("Erro na requisição HTTP:", error);
+      setErroValidacao("Não foi possível alcançar a API na nuvem.");
     } finally {
       setSalvando(false);
     }

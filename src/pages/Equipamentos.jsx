@@ -73,13 +73,17 @@ export default function Equipamentos() {
       aria-labelledby="titulo-equipamentos"
     >
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1
-          id="titulo-equipamentos"
-          className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2"
-        >
-          <FaWheelchairMove className="text-blue-600" aria-hidden="true" />
-          <span>Gestão de Equipamentos</span>
-        </h1>
+        <div>
+          <h1
+            id="titulo-equipamentos"
+            className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2"
+          >
+            <FaWheelchairMove className="text-blue-600" aria-hidden="true" />
+            <span>Gestão de Equipamentos</span>
+          </h1>
+          <p className="text-slate-500">Gerenciamento de equipamentos da ONG</p>
+        </div>
+
         <button
           onClick={() => setModalCadastroAberto(true)}
           className="w-full sm:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-sm"
