@@ -5,7 +5,7 @@ import {
   ModalNova,
   ModalDetalhes,
   ModalCancelamento,
-} from "../components/ModalEntrega/Index.js";
+} from "../components/ModalEntrega/index.js";
 
 export default function Entregas() {
   const [entregas, setEntregas] = useState([]);
