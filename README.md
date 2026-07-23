@@ -1,6 +1,6 @@
 # 💻 Front-end - ONG Apoio Pleno (Interface de Gestão)
 
-![Status](https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow)
+![Status](https://img.shields.io/badge/Status-Concluído-green)
 ![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-Ecosystem-646CFF?logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css&logoColor=white)
