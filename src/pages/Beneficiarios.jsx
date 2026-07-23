@@ -35,7 +35,7 @@ export default function Beneficiarios() {
 
   // Extrai simultaneamente as informações coincidentes relativas à nomeação unindo as duas métricas visíveis.
   const listaFiltrada = beneficiarios.filter((item) => {
-    const termo = termoBusca.toLowerCase();
+    const termo = termoBusca ? termoBusca.toLowerCase() : "";
     return (
       item.nome.toLowerCase().includes(termo) ||
       (item.documento && item.documento.includes(termo))
@@ -68,7 +68,9 @@ export default function Beneficiarios() {
             <FaUserGroup className="text-blue-600" aria-hidden="true" />
             <span>Gestão de Beneficiários</span>
           </h1>
-          <p className="text-slate-500">Gerenciamento de beneficiários cadastrados</p>
+          <p className="text-slate-500">
+            Gerenciamento de beneficiários cadastrados
+          </p>
         </div>
         <button
           onClick={() => setModalCadastroAberto(true)}
@@ -137,12 +139,14 @@ export default function Beneficiarios() {
                     <button
                       onClick={() => abrirEdicao(item)}
                       className="text-blue-600 hover:text-blue-800 p-2"
+                      title="Editar beneficiário"
                     >
                       <FaPen />
                     </button>
                     <button
                       onClick={() => abrirExclusao(item)}
                       className="text-red-600 hover:text-red-800 p-2"
+                      title="Excluir beneficiário"
                     >
                       <FaRegTrashCan />
                     </button>
@@ -164,6 +168,7 @@ export default function Beneficiarios() {
         isOpen={modalEdicaoAberto}
         onClose={() => setModalEdicaoAberto(false)}
         beneficiario={beneficiarioSelecionado}
+        beneficiarios={beneficiarios}
         atualizarLista={buscarDadosApi}
       />
       <ModalExclusao

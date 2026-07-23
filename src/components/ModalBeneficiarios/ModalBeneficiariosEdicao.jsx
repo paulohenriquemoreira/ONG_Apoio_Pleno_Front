@@ -5,7 +5,7 @@ export default function ModalEdicao({
   isOpen,
   onClose,
   beneficiario,
-  beneficiarios,
+  beneficiarios = [],
   atualizarLista,
 }) {
   const [form, setForm] = useState({
@@ -69,15 +69,17 @@ export default function ModalEdicao({
     setSalvando(true);
     setErroValidacao("");
 
-    const documentoDigitado = form.documento.trim();
-    const nomeDigitado = form.nome.trim().toLowerCase();
+    const documentoDigitado = form.documento ? form.documento.trim() : "";
+    const nomeDigitado = form.nome ? form.nome.trim().toLowerCase() : "";
 
-    // Faz a validação de duplicidade, excluindo o ID atual para evitar falsos positivos do próprio registro.
-    const duplicado = beneficiarios.find((item) => {
+    // Faz a validação segura de duplicidade, prevenindo falhas caso o array venha vazio.
+    const listaSegura = Array.isArray(beneficiarios) ? beneficiarios : [];
+    const duplicado = listaSegura.find((item) => {
+      const itemDoc = item.documento ? item.documento.trim() : "";
+      const itemName = item.nome ? item.nome.trim().toLowerCase() : "";
       return (
         item.id !== beneficiario.id &&
-        (item.documento.trim() === documentoDigitado ||
-          item.nome.trim().toLowerCase() === nomeDigitado)
+        (itemDoc === documentoDigitado || itemName === nomeDigitado)
       );
     });
 
@@ -99,12 +101,10 @@ export default function ModalEdicao({
       formData.append("endereco", form.endereco);
       formData.append("data_nascimento", form.data_nascimento);
 
-      // Injeta a data de cadastro original para não quebrar a instrução SQL no servidor.
       if (form.data_cadastro) {
         formData.append("data_cadastro", form.data_cadastro);
       }
 
-      // Anexa a foto somente se o usuário tiver escolhido um novo arquivo no input.
       if (form.foto) {
         formData.append("foto", form.foto);
       }
@@ -122,18 +122,22 @@ export default function ModalEdicao({
         atualizarLista();
         onClose();
       } else {
-        const dadosErro = await resposta.json();
-        console.error("Resposta do servidor:", dadosErro);
-        setErroValidacao(
-          dadosErro.mensagem ||
-            dadosErro.erro ||
-            "Falha do servidor ao tentar salvar as alterações.",
-        );
+        // Tenta ler o JSON com segurança caso o servidor retorne texto puro ou erro HTML
+        let mensagemErro = "Falha do servidor ao tentar salvar as alterações.";
+        try {
+          const dadosErro = await resposta.json();
+          mensagemErro = dadosErro.mensagem || dadosErro.erro || mensagemErro;
+        } catch {
+          mensagemErro = `Erro HTTP ${resposta.status}: Servidor indisponível ou resposta inválida.`;
+        }
+        console.error("Resposta do servidor:", mensagemErro);
+        setErroValidacao(mensagemErro);
       }
     } catch (error) {
       console.error("Erro na requisição HTTP:", error);
       setErroValidacao("Não foi possível alcançar a API na nuvem.");
     } finally {
+      // O bloco finally garante obrigatoriamente que o botão será destravado independentemente do sucesso ou erro
       setSalvando(false);
     }
   };
@@ -185,7 +189,7 @@ export default function ModalEdicao({
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-lg bg-slate-100">
-                  {form.nome.charAt(0).toUpperCase()}
+                  {form.nome ? form.nome.charAt(0).toUpperCase() : "?"}
                 </div>
               )}
             </div>

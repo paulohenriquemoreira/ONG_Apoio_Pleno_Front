@@ -39,7 +39,8 @@ export default function Entregas() {
   const entregasFiltradas = entregas.filter((e) => {
     const termo = termoBusca ? termoBusca.toLowerCase() : "";
     const nome = e.beneficiario_nome ? e.beneficiario_nome.toLowerCase() : "";
-    return nome.includes(termo);
+    const itemNome = e.item ? e.item.toLowerCase() : "";
+    return nome.includes(termo) || itemNome.includes(termo);
   });
 
   const abrirDetalhes = (item) => {
@@ -117,8 +118,10 @@ export default function Entregas() {
                   <span className="font-bold text-[12px] text-slate-400 uppercase w-24 sm:hidden shrink-0 mt-0.5">
                     Itens:
                   </span>
-                  <span className="text-slate-700 text-xs sm:text-sm">
-                    {e.itens_quantidade || 0} itens
+                  <span className="text-slate-700 text-xs sm:text-sm font-medium">
+                    {e.item
+                      ? `${e.item} (${e.quantidade || 1})`
+                      : "Item não especificado"}
                   </span>
                 </td>
 

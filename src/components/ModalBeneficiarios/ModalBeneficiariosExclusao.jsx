@@ -22,7 +22,7 @@ export default function ModalExclusao({
   // Garante que o alerta não apareça desconfigurado caso o registro principal falhe ao ser passado.
   if (!isOpen || !beneficiario) return null;
 
-  // Emite um aviso estruturado destrutivo para a API filtrando ativamente travas estruturais de banco.
+  // Emite um aviso estruturado destrutivo para a API efetuando a exclusão em cascata ou dos vínculos associados.
   const handleDeletar = async () => {
     setExcluindo(true);
     setErro("");
@@ -38,24 +38,20 @@ export default function ModalExclusao({
         atualizarLista();
         onClose();
       } else {
-        const dadosErro = await resposta.json();
+        let dadosErro = {};
+        try {
+          dadosErro = await resposta.json();
+        } catch {
+          dadosErro = { mensagem: "Erro desconhecido retornado pela API." };
+        }
+
         console.error("Erro interno apontado pela API no delete:", dadosErro);
 
-        // Avalia se o bloqueio provém de uma restrição interna onde dependências bloqueiam a exclusão final.
-        if (
-          resposta.status === 500 ||
-          (dadosErro.mensagem && dadosErro.mensagem.includes("Erro interno"))
-        ) {
-          setErro(
-            "Bloqueado: Este beneficiário possui Empréstimos ou Entregas em seu nome. Exclua-os primeiro!",
-          );
-        } else {
-          setErro(
-            dadosErro.mensagem ||
-              dadosErro.erro ||
-              "Não foi possível excluir o cadastro no servidor.",
-          );
-        }
+        setErro(
+          dadosErro.mensagem ||
+            dadosErro.erro ||
+            "Não foi possível excluir o cadastro e liberar os vínculos no servidor.",
+        );
       }
     } catch (error) {
       console.error("Erro na requisição DELETE:", error);
@@ -93,7 +89,8 @@ export default function ModalExclusao({
             <strong className="text-slate-900 font-semibold">
               {beneficiario.nome}
             </strong>
-            ? Esta ação é permanente e não poderá ser desfeita.
+            ? Essa ação excluirá também os empréstimos e entregas vinculados,
+            liberando os equipamentos.
           </p>
         </div>
 
@@ -121,7 +118,7 @@ export default function ModalExclusao({
             disabled={excluindo}
             className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition flex items-center justify-center gap-2 min-h-[44px] shadow-sm"
           >
-            {excluindo ? "Excluindo..." : "Sim, Excluir"}
+            {excluindo ? "Excluindo e Liberando..." : "Sim, Excluir"}
           </button>
         </footer>
       </main>
