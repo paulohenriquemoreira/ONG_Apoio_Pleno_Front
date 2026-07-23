@@ -8,7 +8,7 @@
 
 Esta é a interface gráfica (Single Page Application) do sistema de gestão da **ONG Apoio Pleno**. Desenvolvido para ser o painel de controle administrativo da instituição, permitindo o gerenciamento visual e intuitivo de beneficiários, estoque de equipamentos médicos, empréstimos solidários e doações.
 
-Este projeto consome a [API RESTful da ONG Apoio Pleno]([LINK_DO_SEU_REPOSITORIO_BACKEND_AQUI](https://github.com/paulohenriquemoreira/ONG_Apoio_Pleno_API)), que está hospedada na nuvem.
+Este projeto consome a [API RESTful da ONG Apoio Pleno](https://github.com/paulohenriquemoreira/ONG_Apoio_Pleno_API), que está hospedada na nuvem.
 
 ---
 
