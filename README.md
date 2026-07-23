@@ -47,6 +47,12 @@ src/
 └── main.jsx            # Ponto de injeção do React no DOM (index.html)
 ```
 
+**Usuário padrão criado automaticamente:**
+```
+Email: admin@ong.com.br
+Senha: 123456
+```
+
 ---
 
 ## 🔗 Telas Disponíveis no Painel
